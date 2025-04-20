@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Bell, Home, User, MessageCircle, Menu, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,17 +34,15 @@ const Navbar = () => {
 
           {/* Desktop Search */}
           <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
-            <form onSubmit={handleSearch} className="w-full">
-              <div className="relative">
-                <Input
-                  type="search"
-                  placeholder="Search friends..."
-                  className="w-full pl-10 pr-4 py-2"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              </div>
+            <form onSubmit={handleSearch} className="w-full relative">
+              <Input
+                type="search"
+                placeholder="Search friends..."
+                className="w-full pl-10 pr-4 py-2"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </form>
           </div>
 

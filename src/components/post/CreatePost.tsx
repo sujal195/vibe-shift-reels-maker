@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -165,7 +164,7 @@ const CreatePost = () => {
         </div>
       )}
 
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div className="flex space-x-2">
           <Button 
             variant="ghost" 
@@ -177,13 +176,6 @@ const CreatePost = () => {
             <Camera className="h-5 w-5 mr-2" />
             Photo
           </Button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            className="hidden"
-          />
 
           {isRecording ? (
             <Button 
@@ -206,14 +198,12 @@ const CreatePost = () => {
               Voice
             </Button>
           )}
-        </div>
 
-        <div className="flex space-x-2">
           <RadioGroup 
             defaultValue="public" 
             value={privacy} 
             onValueChange={handlePrivacyChange}
-            className="flex space-x-2"
+            className="flex items-center space-x-2 ml-2"
           >
             <div className="flex items-center space-x-1">
               <RadioGroupItem value="public" id="public" />
@@ -234,7 +224,7 @@ const CreatePost = () => {
             size="sm" 
             onClick={handlePost}
             disabled={!content && !photoPreview && !recordingComplete}
-            className="bg-primary hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 ml-2"
           >
             <Upload className="h-4 w-4 mr-2" />
             Post
