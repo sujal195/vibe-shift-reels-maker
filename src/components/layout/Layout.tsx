@@ -8,9 +8,9 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="pt-20 pb-16 px-4 max-w-7xl mx-auto">
+      <main className="pt-16 w-full">
         {children}
       </main>
       <footer className="text-center p-4 text-sm text-muted-foreground border-t border-border">

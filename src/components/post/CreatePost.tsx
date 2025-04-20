@@ -120,12 +120,20 @@ const CreatePost = () => {
   };
 
   return (
-    <div className="bg-card rounded-lg p-4 shadow-sm border border-border">
+    <div className="bg-card rounded-lg p-4 shadow-sm border border-border max-w-3xl mx-auto">
       <Textarea
         placeholder="What's on your mind?"
         value={content}
         onChange={handleContentChange}
-        className="border-none bg-secondary resize-none mb-4 focus-visible:ring-1 focus-visible:ring-primary"
+        className="border-none bg-secondary resize-none mb-4 focus-visible:ring-1 focus-visible:ring-primary w-full"
+      />
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
       />
 
       {photoPreview && (
@@ -164,8 +172,8 @@ const CreatePost = () => {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <div className="flex space-x-2">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -203,7 +211,7 @@ const CreatePost = () => {
             defaultValue="public" 
             value={privacy} 
             onValueChange={handlePrivacyChange}
-            className="flex items-center space-x-2 ml-2"
+            className="flex items-center gap-2"
           >
             <div className="flex items-center space-x-1">
               <RadioGroupItem value="public" id="public" />
@@ -218,18 +226,18 @@ const CreatePost = () => {
               <Label htmlFor="private" className="text-xs cursor-pointer">Private</Label>
             </div>
           </RadioGroup>
-          
-          <Button 
-            variant="default" 
-            size="sm" 
-            onClick={handlePost}
-            disabled={!content && !photoPreview && !recordingComplete}
-            className="bg-primary hover:bg-primary/90 ml-2"
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Post
-          </Button>
         </div>
+        
+        <Button 
+          variant="default" 
+          size="sm" 
+          onClick={handlePost}
+          disabled={!content && !photoPreview && !recordingComplete}
+          className="bg-primary hover:bg-primary/90"
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Post
+        </Button>
       </div>
     </div>
   );
