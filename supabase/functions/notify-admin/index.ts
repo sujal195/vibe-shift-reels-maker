@@ -2,6 +2,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const ADMIN_EMAIL = "sujalgiri574@gmail.com";
+// Define the application URL (use the actual production domain)
+const APP_URL = "https://gfhcmeicnbccihtyclbj.lovable.dev";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,23 +26,23 @@ serve(async (req) => {
     switch (type) {
       case 'signup':
         subject = "New User Signup on Memoria";
-        body = `A new user has signed up to Memoria:\n\nUser: ${user}\nEmail: ${email}\n\nThey will require an invitation code to access the platform fully.`;
+        body = `A new user has signed up to Memoria:\n\nUser: ${user}\nEmail: ${email}\n\nThey will require an invitation code to access the platform fully.\n\nView the user: ${APP_URL}/admin/users`;
         break;
       case 'signin':
         subject = "User Sign In on Memoria";
-        body = `A user has signed in to Memoria:\n\nEmail: ${email}`;
+        body = `A user has signed in to Memoria:\n\nEmail: ${email}\n\nView the user: ${APP_URL}/auth`;
         break;
       case 'invitation_code_redeemed':
         subject = "Invitation Code Redeemed on Memoria";
-        body = `A user has redeemed an invitation code on Memoria:\n\nUser: ${user}\nInvitation Code: ${code}`;
+        body = `A user has redeemed an invitation code on Memoria:\n\nUser: ${user}\nInvitation Code: ${code}\n\nView invitation codes: ${APP_URL}/admin/invitation-codes`;
         break;
       case 'profile_completed':
         subject = "User Completed Profile Setup on Memoria";
-        body = `A user has completed their profile setup on Memoria:\n\nUser: ${user}\nUsername: @${username}`;
+        body = `A user has completed their profile setup on Memoria:\n\nUser: ${user}\nUsername: @${username}\n\nView profile: ${APP_URL}/profile/${username}`;
         break;
       default:
         subject = "Memoria Notification";
-        body = `Activity on Memoria:\n\nType: ${type}\nUser: ${user || email || "Unknown"}`;
+        body = `Activity on Memoria:\n\nType: ${type}\nUser: ${user || email || "Unknown"}\n\nView the app: ${APP_URL}`;
     }
     
     // In a real implementation, you would use an email service like Resend, SendGrid, etc.
