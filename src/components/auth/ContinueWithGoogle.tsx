@@ -11,10 +11,13 @@ export default function ContinueWithGoogle() {
   async function handleGoogleLogin() {
     setLoading(true);
     try {
+      // Get the current origin to use for the redirect
+      const currentOrigin = window.location.origin;
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.origin + "/invitation-code",
+          redirectTo: `${currentOrigin}/invitation-code`,
         },
       });
 
@@ -22,7 +25,7 @@ export default function ContinueWithGoogle() {
         console.error("Google login error:", error);
         toast({ 
           title: "Google login failed", 
-          description: "Please use email/password login while we fix Google authentication.", 
+          description: error.message || "Please try again later.", 
           variant: "destructive" 
         });
       }
