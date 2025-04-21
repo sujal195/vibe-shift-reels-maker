@@ -146,7 +146,7 @@ const ProfileSetupPage = () => {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
-          bio: data.bio,
+          bio: data.bio, // This is now valid!
         })
         .eq('id', user?.id);
 
