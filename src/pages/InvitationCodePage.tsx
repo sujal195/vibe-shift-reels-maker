@@ -110,7 +110,7 @@ const InvitationCodePage = () => {
 
       // Notify admin 
       try {
-        await fetch(`https://gfhcmeicnbccihtyclbj.supabase.co/functions/v1/notify-admin`, {
+        await fetch(`${window.location.origin.replace('localhost:3000', 'gfhcmeicnbccihtyclbj.supabase.co')}/functions/v1/notify-admin`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

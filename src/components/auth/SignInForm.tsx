@@ -43,9 +43,9 @@ export default function SignInForm() {
         return;
       }
 
-      // Notify admin via edge function (to be implemented)
+      // Notify admin via edge function
       try {
-        await fetch(`https://gfhcmeicnbccihtyclbj.supabase.co/functions/v1/notify-admin`, {
+        await fetch(`${window.location.origin.replace('localhost:3000', 'gfhcmeicnbccihtyclbj.supabase.co')}/functions/v1/notify-admin`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
