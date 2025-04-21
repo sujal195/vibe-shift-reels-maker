@@ -10,8 +10,22 @@ import NotificationsPage from "./pages/NotificationsPage";
 import MessagesPage from "./pages/MessagesPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
+import AuthPage from "./pages/AuthPage";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 const queryClient = new QueryClient();
+
+const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
+  const { user, isLoading } = useAuthSession();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="text-xl text-primary">Loading...</span>
+      </div>
+    );
+  }
+  return user ? element : <AuthPage />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -21,11 +35,12 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/friends" element={<FriendsPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/messages" element={<MessagesPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/" element={<ProtectedRoute element={<Index />} />} />
+            <Route path="/friends" element={<ProtectedRoute element={<FriendsPage />} />} />
+            <Route path="/notifications" element={<ProtectedRoute element={<NotificationsPage />} />} />
+            <Route path="/messages" element={<ProtectedRoute element={<MessagesPage />} />} />
+            <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

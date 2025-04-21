@@ -9,7 +9,81 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      invitation_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          created_by: string | null
+          is_active: boolean | null
+          redeemed_at: string | null
+          redeemed_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          is_active?: boolean | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          is_active?: boolean | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitation_codes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitation_codes_redeemed_by_fkey"
+            columns: ["redeemed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          badge: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string
+          invitation_code_created_at: string | null
+          invitation_code_used: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          badge?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id: string
+          invitation_code_created_at?: string | null
+          invitation_code_used?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          badge?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          invitation_code_created_at?: string | null
+          invitation_code_used?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
