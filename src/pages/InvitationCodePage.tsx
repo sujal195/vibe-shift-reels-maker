@@ -13,6 +13,9 @@ type InvitationCodeValues = {
   code: string;
 };
 
+// The universal invitation code
+const UNIVERSAL_CODE = "1592161639";
+
 const InvitationCodePage = () => {
   const { user, isLoading } = useAuthSession();
   const navigate = useNavigate();
@@ -20,7 +23,7 @@ const InvitationCodePage = () => {
   const [isVerifying, setIsVerifying] = useState(true);
 
   const form = useForm<InvitationCodeValues>({
-    defaultValues: { code: "" }
+    defaultValues: { code: UNIVERSAL_CODE } // Pre-fill with universal code
   });
 
   useEffect(() => {
@@ -33,7 +36,7 @@ const InvitationCodePage = () => {
         .from('profiles')
         .select('invitation_code_used')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!error && profile?.invitation_code_used) {
         // User already has a verified invitation code
@@ -54,6 +57,50 @@ const InvitationCodePage = () => {
     setLoading(true);
     
     try {
+      // If code matches the universal code, approve it automatically
+      if (data.code === UNIVERSAL_CODE) {
+        // Update user profile with the invitation code
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ invitation_code_used: UNIVERSAL_CODE })
+          .eq('id', user.id);
+
+        if (profileError) {
+          toast({ 
+            title: "Error updating profile", 
+            description: profileError.message, 
+            variant: "destructive" 
+          });
+          setLoading(false);
+          return;
+        }
+
+        // Notify admin 
+        try {
+          const apiUrl = `${window.location.origin.includes('localhost') 
+            ? 'https://gfhcmeicnbccihtyclbj.supabase.co' 
+            : window.location.origin}/functions/v1/notify-admin`;
+            
+          await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              type: 'invitation_code_redeemed',
+              user: user.email,
+              code: data.code
+            }),
+          });
+        } catch (e) {
+          console.error('Failed to notify admin:', e);
+        }
+
+        toast({ title: "Success!", description: "Invitation code verified successfully." });
+        navigate('/profile-setup');
+        return;
+      }
+
       // Check if the invitation code exists and is available
       const { data: inviteCode, error: inviteError } = await supabase
         .from('invitation_codes')
@@ -61,7 +108,7 @@ const InvitationCodePage = () => {
         .eq('code', data.code)
         .eq('is_active', true)
         .is('redeemed_by', null)
-        .single();
+        .maybeSingle();
 
       if (inviteError || !inviteCode) {
         toast({ 
@@ -110,7 +157,11 @@ const InvitationCodePage = () => {
 
       // Notify admin 
       try {
-        await fetch(`${window.location.origin.replace('localhost:3000', 'gfhcmeicnbccihtyclbj.supabase.co')}/functions/v1/notify-admin`, {
+        const apiUrl = `${window.location.origin.includes('localhost') 
+          ? 'https://gfhcmeicnbccihtyclbj.supabase.co' 
+          : window.location.origin}/functions/v1/notify-admin`;
+          
+        await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -138,6 +189,19 @@ const InvitationCodePage = () => {
       setLoading(false);
     }
   }
+
+  // Handle auto-submission of the form if code is pre-filled
+  useEffect(() => {
+    const autoSubmit = async () => {
+      // Wait for user authentication
+      if (!isLoading && user && !isVerifying) {
+        // Submit the form with the universal code automatically
+        form.handleSubmit(onSubmit)();
+      }
+    };
+    
+    autoSubmit();
+  }, [isLoading, user, isVerifying]);
 
   if (isLoading || isVerifying) {
     return (
@@ -189,7 +253,7 @@ const InvitationCodePage = () => {
         
         <div className="text-center mt-4">
           <p className="text-sm text-muted-foreground">
-            Didn't receive a code? Check your spam folder or contact support.
+            Didn't receive a code? Use: <strong>1592161639</strong>
           </p>
         </div>
       </div>

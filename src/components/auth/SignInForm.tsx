@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,7 +44,11 @@ export default function SignInForm() {
 
       // Notify admin via edge function
       try {
-        await fetch(`${window.location.origin.replace('localhost:3000', 'gfhcmeicnbccihtyclbj.supabase.co')}/functions/v1/notify-admin`, {
+        const apiUrl = `${window.location.origin.includes('localhost') 
+          ? 'https://gfhcmeicnbccihtyclbj.supabase.co' 
+          : window.location.origin}/functions/v1/notify-admin`;
+          
+        await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
