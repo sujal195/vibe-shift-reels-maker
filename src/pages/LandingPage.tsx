@@ -1,9 +1,13 @@
 
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ParticlesContainer } from '@/components/landing/ParticlesContainer';
+import { useAuthSession } from '@/hooks/useAuthSession';
 
 const LandingPage = () => {
+  const { user } = useAuthSession();
+  const navigate = useNavigate();
+
   useEffect(() => {
     // Add fade-in classes after component mounts for animation
     const elements = document.querySelectorAll('.animate-on-mount');

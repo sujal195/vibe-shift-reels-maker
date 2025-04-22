@@ -21,6 +21,7 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
   const { user, isLoading } = useAuthSession();
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -28,7 +29,30 @@ const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
       </div>
     );
   }
-  return user ? element : <Navigate to="/" />;
+
+  if (!user) {
+    return <Navigate to="/auth" />;
+  }
+
+  return element;
+};
+
+const AuthenticatedRedirect = ({ element }: { element: JSX.Element }) => {
+  const { user, isLoading } = useAuthSession();
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="text-xl text-primary">Loading...</span>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/home" />;
+  }
+
+  return element;
 };
 
 const App = () => (
@@ -40,8 +64,8 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/" element={<AuthenticatedRedirect element={<LandingPage />} />} />
+              <Route path="/auth" element={<AuthenticatedRedirect element={<AuthPage />} />} />
               <Route path="/invitation-code" element={<ProtectedRoute element={<InvitationCodePage />} />} />
               <Route path="/profile-setup" element={<ProtectedRoute element={<ProfileSetupPage />} />} />
               <Route path="/home" element={<ProtectedRoute element={<Index />} />} />
