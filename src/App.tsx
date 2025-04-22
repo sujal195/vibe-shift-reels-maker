@@ -28,7 +28,7 @@ const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
       </div>
     );
   }
-  return user ? element : <Navigate to="/landing" />;
+  return user ? element : <Navigate to="/" />;
 };
 
 const App = () => (
@@ -40,16 +40,16 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/landing" element={<LandingPage />} />
+              <Route path="/" element={<LandingPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/invitation-code" element={<ProtectedRoute element={<InvitationCodePage />} />} />
               <Route path="/profile-setup" element={<ProtectedRoute element={<ProfileSetupPage />} />} />
-              <Route path="/" element={<ProtectedRoute element={<Index />} />} />
+              <Route path="/home" element={<ProtectedRoute element={<Index />} />} />
               <Route path="/friends" element={<ProtectedRoute element={<FriendsPage />} />} />
               <Route path="/notifications" element={<ProtectedRoute element={<NotificationsPage />} />} />
               <Route path="/messages" element={<ProtectedRoute element={<MessagesPage />} />} />
               <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
-              <Route path="*" element={<Navigate to="/landing" />} />
+              <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
