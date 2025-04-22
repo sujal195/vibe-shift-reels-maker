@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
+import LandingPage from "./pages/LandingPage";
 import Index from "./pages/Index";
 import FriendsPage from "./pages/FriendsPage";
 import NotificationsPage from "./pages/NotificationsPage";
@@ -27,7 +28,7 @@ const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
       </div>
     );
   }
-  return user ? element : <Navigate to="/auth" />;
+  return user ? element : <Navigate to="/landing" />;
 };
 
 const App = () => (
@@ -39,6 +40,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+              <Route path="/landing" element={<LandingPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/invitation-code" element={<ProtectedRoute element={<InvitationCodePage />} />} />
               <Route path="/profile-setup" element={<ProtectedRoute element={<ProfileSetupPage />} />} />
@@ -47,7 +49,7 @@ const App = () => (
               <Route path="/notifications" element={<ProtectedRoute element={<NotificationsPage />} />} />
               <Route path="/messages" element={<ProtectedRoute element={<MessagesPage />} />} />
               <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="*" element={<Navigate to="/landing" />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
