@@ -14,10 +14,23 @@ export default function ContinueWithGoogle() {
       // Get the current origin to use for the redirect
       const currentOrigin = window.location.origin;
       
+      // Check if we're in a preview environment (Lovable uses gptengineer.app, lovable.dev, etc.)
+      const isPreviewEnvironment = 
+        currentOrigin.includes('gptengineer.app') || 
+        currentOrigin.includes('lovable.dev') ||
+        currentOrigin.includes('localhost');
+      
+      // Use the current origin as the redirect URL or fallback to the deployed URL
+      const redirectUrl = isPreviewEnvironment 
+        ? `${currentOrigin}/invitation-code` 
+        : `${currentOrigin}/invitation-code`;
+      
+      console.log("Redirecting to:", redirectUrl);
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${currentOrigin}/invitation-code`,
+          redirectTo: redirectUrl,
         },
       });
 
