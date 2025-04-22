@@ -1,31 +1,72 @@
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 interface PhotoUploaderProps {
   photoPreview: string | null;
   onPhotoSelect: (file: File) => void;
   onRemovePhoto: () => void;
   disabled?: boolean;
+  uploadType?: 'profile' | 'cover' | 'post';
 }
 
 const PhotoUploader = ({
   photoPreview,
   onPhotoSelect,
   onRemovePhoto,
-  disabled = false
+  disabled = false,
+  uploadType = 'post'
 }: PhotoUploaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuthSession();
+  const [isUploading, setIsUploading] = useState(false);
 
   const handlePhotoClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      onPhotoSelect(file);
+    if (file && user) {
+      setIsUploading(true);
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}-${uploadType}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+        const filePath = `${uploadType}-pictures/${fileName}`;
+        
+        const { error: uploadError } = await supabase
+          .storage
+          .from('avatars')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          toast({
+            title: "Upload Failed",
+            description: uploadError.message,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const { data } = supabase
+          .storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+        onPhotoSelect(file);
+        setIsUploading(false);
+      } catch (error) {
+        toast({
+          title: "Upload Error",
+          description: "An unexpected error occurred",
+          variant: "destructive"
+        });
+        setIsUploading(false);
+      }
     }
   };
 
@@ -35,11 +76,11 @@ const PhotoUploader = ({
         variant="ghost" 
         size="sm" 
         onClick={handlePhotoClick}
-        disabled={disabled}
+        disabled={disabled || isUploading}
         className="text-foreground hover:text-primary"
       >
         <Camera className="h-5 w-5 mr-2" />
-        Photo
+        {isUploading ? "Uploading..." : "Photo"}
       </Button>
 
       <input
