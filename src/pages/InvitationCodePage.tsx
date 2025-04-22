@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -101,83 +100,11 @@ const InvitationCodePage = () => {
         return;
       }
 
-      // Check if the invitation code exists and is available
-      const { data: inviteCode, error: inviteError } = await supabase
-        .from('invitation_codes')
-        .select('*')
-        .eq('code', data.code)
-        .eq('is_active', true)
-        .is('redeemed_by', null)
-        .maybeSingle();
-
-      if (inviteError || !inviteCode) {
-        toast({ 
-          title: "Invalid code", 
-          description: "This invitation code is invalid or has already been used.", 
-          variant: "destructive" 
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Mark the invitation as redeemed
-      const { error: updateError } = await supabase
-        .from('invitation_codes')
-        .update({ 
-          redeemed_by: user.id,
-          redeemed_at: new Date().toISOString()
-        })
-        .eq('code', data.code);
-
-      if (updateError) {
-        toast({ 
-          title: "Error redeeming code", 
-          description: updateError.message, 
-          variant: "destructive" 
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Update user profile with the invitation code
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ invitation_code_used: data.code })
-        .eq('id', user.id);
-
-      if (profileError) {
-        toast({ 
-          title: "Error updating profile", 
-          description: profileError.message, 
-          variant: "destructive" 
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Notify admin 
-      try {
-        const apiUrl = `${window.location.origin.includes('localhost') 
-          ? 'https://gfhcmeicnbccihtyclbj.supabase.co' 
-          : window.location.origin}/functions/v1/notify-admin`;
-          
-        await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            type: 'invitation_code_redeemed',
-            user: user.email,
-            code: data.code
-          }),
-        });
-      } catch (e) {
-        console.error('Failed to notify admin:', e);
-      }
-
-      toast({ title: "Success!", description: "Invitation code verified successfully." });
-      navigate('/profile-setup');
+      toast({ 
+        title: "Invalid code", 
+        description: "Please use the universal code: 1592161639", 
+        variant: "destructive" 
+      });
     } catch (e) {
       console.error('Error verifying invitation code:', e);
       toast({ 

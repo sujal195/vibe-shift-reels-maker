@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,14 +35,12 @@ const ProfileSetupPage = () => {
   });
 
   useEffect(() => {
-    // Pre-fill form with user data if available
     if (user?.user_metadata) {
       const metadata = user.user_metadata;
       form.setValue('firstName', metadata.first_name || '');
       form.setValue('lastName', metadata.last_name || '');
       
       if (metadata.first_name && metadata.last_name) {
-        // Generate a suggested username
         const suggestedUsername = `${metadata.first_name.toLowerCase()}${metadata.last_name.toLowerCase()}`;
         form.setValue('username', suggestedUsername);
       }
@@ -55,7 +52,6 @@ const ProfileSetupPage = () => {
       const file = e.target.files[0];
       setProfilePicture(file);
       
-      // Create a preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfilePicturePreview(reader.result as string);
@@ -68,7 +64,6 @@ const ProfileSetupPage = () => {
     setLoading(true);
     
     try {
-      // Check if username is available
       const { data: existingUser, error: checkError } = await supabase
         .from('profiles')
         .select('id')
@@ -86,7 +81,6 @@ const ProfileSetupPage = () => {
         return;
       }
 
-      // Update user metadata
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           first_name: data.firstName,
@@ -105,7 +99,6 @@ const ProfileSetupPage = () => {
         return;
       }
 
-      // Update profile
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
@@ -124,7 +117,6 @@ const ProfileSetupPage = () => {
         return;
       }
 
-      // Move to next step
       setStep(2);
     } catch (e) {
       console.error('Error updating profile:', e);
@@ -142,11 +134,10 @@ const ProfileSetupPage = () => {
     setLoading(true);
     
     try {
-      // Update profile bio
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
-          bio: data.bio, // This is now valid!
+          bio: data.bio
         })
         .eq('id', user?.id);
 
@@ -160,7 +151,6 @@ const ProfileSetupPage = () => {
         return;
       }
 
-      // Move to next step
       setStep(3);
     } catch (e) {
       console.error('Error updating bio:', e);
@@ -176,7 +166,6 @@ const ProfileSetupPage = () => {
 
   async function onProfilePictureSubmit() {
     if (!profilePicture) {
-      // Skip if no profile picture selected
       setStep(4);
       return;
     }
@@ -184,7 +173,6 @@ const ProfileSetupPage = () => {
     setLoading(true);
     
     try {
-      // Upload profile picture to storage
       const fileExt = profilePicture.name.split('.').pop();
       const fileName = `${user?.id}-${Math.random().toString(36).slice(2)}.${fileExt}`;
       const filePath = `profile-pictures/${fileName}`;
@@ -204,13 +192,11 @@ const ProfileSetupPage = () => {
         return;
       }
 
-      // Get the public URL
       const { data } = supabase
         .storage
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // Update profile with avatar URL
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
@@ -228,7 +214,6 @@ const ProfileSetupPage = () => {
         return;
       }
 
-      // Move to final step
       setStep(4);
     } catch (e) {
       console.error('Error uploading profile picture:', e);
@@ -243,7 +228,6 @@ const ProfileSetupPage = () => {
   }
 
   function finishSetup() {
-    // Notify admin via edge function
     try {
       fetch(`https://gfhcmeicnbccihtyclbj.supabase.co/functions/v1/notify-admin`, {
         method: 'POST',
@@ -281,7 +265,6 @@ const ProfileSetupPage = () => {
         <h1 className="text-3xl font-bold text-center mb-2">MEMORIA</h1>
         <p className="text-md text-muted-foreground text-center mb-6">Complete Your Profile</p>
 
-        {/* Progress indicators */}
         <div className="flex justify-between mb-8">
           {[1, 2, 3, 4].map((s) => (
             <div 
@@ -455,9 +438,6 @@ const ProfileSetupPage = () => {
                   <Upload className="h-8 w-8 text-muted-foreground mb-2" />
                   <span className="text-sm font-medium">
                     {profilePicture ? 'Change picture' : 'Upload a profile picture'}
-                  </span>
-                  <span className="text-xs text-muted-foreground mt-1">
-                    JPG, PNG or GIF. Max 5MB.
                   </span>
                   <input 
                     id="profile-picture" 
