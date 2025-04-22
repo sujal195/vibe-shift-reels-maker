@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,8 +12,6 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 type InvitationCodeValues = {
   code: string;
 };
-
-const UNIVERSAL_CODE = "1592161639";
 
 const InvitationCodePage = () => {
   const { user, isLoading } = useAuthSession();
@@ -119,7 +118,7 @@ const InvitationCodePage = () => {
         <div className="text-center mb-6">
           <h2 className="text-xl font-semibold">Enter Your Invitation Code</h2>
           <p className="text-sm text-muted-foreground mt-2">
-            To join Memoria, please enter the invitation code that was sent to your email.
+            To join Memoria, please enter the invitation code.
           </p>
         </div>
         
@@ -149,12 +148,6 @@ const InvitationCodePage = () => {
             </Button>
           </form>
         </Form>
-        
-        <div className="text-center mt-4">
-          <p className="text-sm text-muted-foreground">
-            Didn't receive a code? Use: <strong>1592161639</strong>
-          </p>
-        </div>
       </div>
     </div>
   );
