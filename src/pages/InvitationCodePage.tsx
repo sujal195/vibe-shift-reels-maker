@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +23,7 @@ const InvitationCodePage = () => {
   const [isVerifying, setIsVerifying] = useState(true);
 
   const form = useForm<InvitationCodeValues>({
-    defaultValues: { code: UNIVERSAL_CODE } // Pre-fill with universal code
+    defaultValues: { code: "" } // Removed pre-filling of code
   });
 
   useEffect(() => {
@@ -56,7 +57,7 @@ const InvitationCodePage = () => {
     setLoading(true);
     
     try {
-      // If code matches the universal code, approve it automatically
+      // If code matches the universal code, approve it
       if (data.code === UNIVERSAL_CODE) {
         // Update user profile with the invitation code
         const { error: profileError } = await supabase
@@ -116,19 +117,6 @@ const InvitationCodePage = () => {
       setLoading(false);
     }
   }
-
-  // Handle auto-submission of the form if code is pre-filled
-  useEffect(() => {
-    const autoSubmit = async () => {
-      // Wait for user authentication
-      if (!isLoading && user && !isVerifying) {
-        // Submit the form with the universal code automatically
-        form.handleSubmit(onSubmit)();
-      }
-    };
-    
-    autoSubmit();
-  }, [isLoading, user, isVerifying]);
 
   if (isLoading || isVerifying) {
     return (
