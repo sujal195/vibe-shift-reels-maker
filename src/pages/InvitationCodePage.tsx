@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +12,6 @@ type InvitationCodeValues = {
   code: string;
 };
 
-// The universal invitation code
 const UNIVERSAL_CODE = "1592161639";
 
 const InvitationCodePage = () => {
@@ -23,11 +21,10 @@ const InvitationCodePage = () => {
   const [isVerifying, setIsVerifying] = useState(true);
 
   const form = useForm<InvitationCodeValues>({
-    defaultValues: { code: "" } // Removed pre-filling of code
+    defaultValues: { code: "" }
   });
 
   useEffect(() => {
-    // Check if user already has a verified invitation code
     async function checkInvitationStatus() {
       if (!user?.id) return;
 
@@ -39,7 +36,6 @@ const InvitationCodePage = () => {
         .maybeSingle();
 
       if (!error && profile?.invitation_code_used) {
-        // User already has a verified invitation code
         navigate('/profile-setup');
       }
       
@@ -57,55 +53,43 @@ const InvitationCodePage = () => {
     setLoading(true);
     
     try {
-      // If code matches the universal code, approve it
-      if (data.code === UNIVERSAL_CODE) {
-        // Update user profile with the invitation code
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ invitation_code_used: UNIVERSAL_CODE })
-          .eq('id', user.id);
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ invitation_code_used: data.code })
+        .eq('id', user.id);
 
-        if (profileError) {
-          toast({ 
-            title: "Error updating profile", 
-            description: profileError.message, 
-            variant: "destructive" 
-          });
-          setLoading(false);
-          return;
-        }
-
-        // Notify admin 
-        try {
-          const apiUrl = `${window.location.origin.includes('localhost') 
-            ? 'https://gfhcmeicnbccihtyclbj.supabase.co' 
-            : window.location.origin}/functions/v1/notify-admin`;
-            
-          await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              type: 'invitation_code_redeemed',
-              user: user.email,
-              code: data.code
-            }),
-          });
-        } catch (e) {
-          console.error('Failed to notify admin:', e);
-        }
-
-        toast({ title: "Success!", description: "Invitation code verified successfully." });
-        navigate('/profile-setup');
+      if (profileError) {
+        toast({ 
+          title: "Error updating profile", 
+          description: profileError.message, 
+          variant: "destructive" 
+        });
+        setLoading(false);
         return;
       }
 
-      toast({ 
-        title: "Invalid code", 
-        description: "Please use the universal code: 1592161639", 
-        variant: "destructive" 
-      });
+      try {
+        const apiUrl = `${window.location.origin.includes('localhost') 
+          ? 'https://gfhcmeicnbccihtyclbj.supabase.co' 
+          : window.location.origin}/functions/v1/notify-admin`;
+          
+        await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'invitation_code_redeemed',
+            user: user.email,
+            code: data.code
+          }),
+        });
+      } catch (e) {
+        console.error('Failed to notify admin:', e);
+      }
+
+      toast({ title: "Success!", description: "Invitation code verified successfully." });
+      navigate('/profile-setup');
     } catch (e) {
       console.error('Error verifying invitation code:', e);
       toast({ 
