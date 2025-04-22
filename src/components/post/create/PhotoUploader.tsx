@@ -8,7 +8,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 
 interface PhotoUploaderProps {
   photoPreview: string | null;
-  onPhotoSelect: (file: File) => void;
+  onPhotoSelect: (file: File, publicUrl: string) => void;
   onRemovePhoto: () => void;
   disabled?: boolean;
   uploadType?: 'profile' | 'cover' | 'post';
@@ -25,6 +25,13 @@ const PhotoUploader = ({
   const { user } = useAuthSession();
   const [isUploading, setIsUploading] = useState(false);
 
+  // Determine the target bucket based on uploadType
+  const bucket = uploadType === "cover"
+    ? "covers"
+    : uploadType === "profile"
+    ? "avatars"
+    : "avatars"; // default to avatars for posts and other types
+
   const handlePhotoClick = () => {
     fileInputRef.current?.click();
   };
@@ -36,11 +43,16 @@ const PhotoUploader = ({
       try {
         const fileExt = file.name.split('.').pop();
         const fileName = `${user.id}-${uploadType}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-        const filePath = `${uploadType}-pictures/${fileName}`;
-        
+        const filePath =
+          uploadType === "cover"
+            ? `cover-pictures/${fileName}`
+            : uploadType === "profile"
+            ? `profile-pictures/${fileName}`
+            : `post-pictures/${fileName}`;
+
         const { error: uploadError } = await supabase
           .storage
-          .from('avatars')
+          .from(bucket)
           .upload(filePath, file);
 
         if (uploadError) {
@@ -49,24 +61,24 @@ const PhotoUploader = ({
             description: uploadError.message,
             variant: "destructive"
           });
+          setIsUploading(false);
           return;
         }
 
         const { data } = supabase
           .storage
-          .from('avatars')
+          .from(bucket)
           .getPublicUrl(filePath);
 
-        onPhotoSelect(file);
-        setIsUploading(false);
+        onPhotoSelect(file, data.publicUrl);
       } catch (error) {
         toast({
           title: "Upload Error",
           description: "An unexpected error occurred",
           variant: "destructive"
         });
-        setIsUploading(false);
       }
+      setIsUploading(false);
     }
   };
 
@@ -89,6 +101,7 @@ const PhotoUploader = ({
         onChange={handleFileChange}
         accept="image/*"
         className="hidden"
+        disabled={disabled || isUploading}
       />
 
       {photoPreview && (
@@ -103,6 +116,7 @@ const PhotoUploader = ({
             size="icon" 
             className="absolute top-2 right-2 rounded-full" 
             onClick={onRemovePhoto}
+            type="button"
           >
             <X className="h-4 w-4" />
           </Button>
