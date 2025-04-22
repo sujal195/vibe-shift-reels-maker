@@ -12,7 +12,6 @@ const Index = () => {
     <Layout>
       <div className="max-w-2xl mx-auto">
         <div className="space-y-6">
-          <h1 className="text-3xl font-bold text-primary">Your Feed</h1>
           {!isLoading && !user && (
             <div className="p-4 bg-secondary rounded mb-6 text-center">
               <span className="mr-2">You must be signed in to use MEMORIA.</span>
