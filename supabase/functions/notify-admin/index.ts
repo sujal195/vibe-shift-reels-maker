@@ -17,7 +17,7 @@ serve(async (req) => {
   }
   
   try {
-    const { type, user, email, code, username } = await req.json();
+    const { type, user, email, code, username, post } = await req.json();
     
     let subject = "Memoria Activity Notification";
     let body = "An activity occurred in your Memoria app.";
@@ -32,6 +32,10 @@ serve(async (req) => {
         subject = "User Sign In on Memoria";
         body = `A user has signed in to Memoria:\n\nEmail: ${email}\n\nView the user: ${APP_URL}/auth`;
         break;
+      case 'signout':
+        subject = "User Sign Out from Memoria";
+        body = `A user has signed out from Memoria:\n\nEmail: ${email}\n\nView auth logs: ${APP_URL}/admin/logs`;
+        break;
       case 'invitation_code_redeemed':
         subject = "Invitation Code Redeemed on Memoria";
         body = `A user has redeemed an invitation code on Memoria:\n\nUser: ${user}\nInvitation Code: ${code}\n\nView invitation codes: ${APP_URL}/admin/invitation-codes`;
@@ -39,6 +43,10 @@ serve(async (req) => {
       case 'profile_completed':
         subject = "User Completed Profile Setup on Memoria";
         body = `A user has completed their profile setup on Memoria:\n\nUser: ${user}\nUsername: @${username}\n\nView profile: ${APP_URL}/profile/${username}`;
+        break;
+      case 'post_created':
+        subject = "New Post Created on Memoria";
+        body = `A new post was created on Memoria:\n\nUser: ${user}\nContent: ${post?.content?.substring(0, 100)}${post?.content?.length > 100 ? '...' : ''}\n\nView the post: ${APP_URL}/home`;
         break;
       default:
         subject = "Memoria Notification";

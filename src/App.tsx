@@ -15,6 +15,8 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
 import InvitationCodePage from "./pages/InvitationCodePage";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
+import ContactPage from "./pages/ContactPage";
+import PremiumPage from "./pages/PremiumPage";
 import { AuthProvider, useAuthSession } from "@/hooks/useAuthSession";
 
 const queryClient = new QueryClient();
@@ -73,7 +75,9 @@ const App = () => (
               <Route path="/notifications" element={<ProtectedRoute element={<NotificationsPage />} />} />
               <Route path="/messages" element={<ProtectedRoute element={<MessagesPage />} />} />
               <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
-              <Route path="*" element={<Navigate to="/" />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/premium" element={<ProtectedRoute element={<PremiumPage />} />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

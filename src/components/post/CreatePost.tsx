@@ -5,8 +5,10 @@ import AudioRecorder from "./create/AudioRecorder";
 import PrivacySelector from "./create/PrivacySelector";
 import PostButton from "./create/PostButton";
 import { usePostCreation } from "@/hooks/usePostCreation";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 const CreatePost = () => {
+  const { user } = useAuthSession();
   const {
     content,
     privacy,
@@ -14,6 +16,7 @@ const CreatePost = () => {
     isRecording,
     recordingComplete,
     audioUrl,
+    isPosting,
     canPost,
     handleContentChange,
     handlePrivacyChange,
@@ -25,6 +28,10 @@ const CreatePost = () => {
     handlePost
   } = usePostCreation();
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-border max-w-3xl mx-auto">
       <Textarea
@@ -32,13 +39,14 @@ const CreatePost = () => {
         value={content}
         onChange={handleContentChange}
         className="border-none bg-secondary resize-none mb-4 focus-visible:ring-1 focus-visible:ring-primary w-full"
+        disabled={isPosting}
       />
 
       <PhotoUploader
         photoPreview={photoPreview}
         onPhotoSelect={handlePhotoSelect}
         onRemovePhoto={handleRemovePhoto}
-        disabled={isRecording || recordingComplete}
+        disabled={isRecording || recordingComplete || isPosting}
       />
 
       {!photoPreview && (
@@ -56,12 +64,14 @@ const CreatePost = () => {
           <PrivacySelector
             privacy={privacy}
             onPrivacyChange={handlePrivacyChange}
+            disabled={isPosting}
           />
         </div>
         
         <PostButton
           onClick={handlePost}
           disabled={!canPost}
+          isPosting={isPosting}
         />
       </div>
     </div>

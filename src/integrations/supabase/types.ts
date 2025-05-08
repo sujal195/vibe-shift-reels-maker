@@ -51,6 +51,36 @@ export type Database = {
           },
         ]
       }
+      invitation_requests: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          social_media: string | null
+          use_case: string | null
+          user_id: string | null
+          work_email: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          social_media?: string | null
+          use_case?: string | null
+          user_id?: string | null
+          work_email?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          social_media?: string | null
+          use_case?: string | null
+          user_id?: string | null
+          work_email?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -84,6 +114,27 @@ export type Database = {
           invitation_code_created_at?: string | null
           invitation_code_used?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      "public.user_stats": {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

@@ -1,23 +1,22 @@
 
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Send } from "lucide-react";
 
 interface PostButtonProps {
   onClick: () => void;
   disabled: boolean;
+  isPosting?: boolean;
 }
 
-const PostButton = ({ onClick, disabled }: PostButtonProps) => {
+const PostButton = ({ onClick, disabled, isPosting = false }: PostButtonProps) => {
   return (
     <Button 
-      variant="default" 
-      size="sm" 
-      onClick={onClick}
-      disabled={disabled}
-      className="bg-primary hover:bg-primary/90"
+      onClick={onClick} 
+      disabled={disabled || isPosting}
+      className="ml-auto"
     >
-      <Upload className="h-4 w-4 mr-2" />
-      Post
+      <Send className="h-4 w-4 mr-2" />
+      {isPosting ? "Posting..." : "Post"}
     </Button>
   );
 };

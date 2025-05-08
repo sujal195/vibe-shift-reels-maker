@@ -30,7 +30,7 @@ const PhotoUploader = ({
     ? "covers"
     : uploadType === "profile"
     ? "avatars"
-    : "avatars"; // default to avatars for posts and other types
+    : "avatars"; // default to avatars for posts as well for now
 
   const handlePhotoClick = () => {
     fileInputRef.current?.click();
@@ -90,6 +90,7 @@ const PhotoUploader = ({
         onClick={handlePhotoClick}
         disabled={disabled || isUploading}
         className="text-foreground hover:text-primary"
+        type="button"
       >
         <Camera className="h-5 w-5 mr-2" />
         {isUploading ? "Uploading..." : "Photo"}

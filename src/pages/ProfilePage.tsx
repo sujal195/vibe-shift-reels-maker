@@ -1,102 +1,204 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Edit, Image, Mic } from "lucide-react";
 import PostCard, { Post } from "@/components/post/PostCard";
-
-// Mock data
-const userProfile = {
-  id: "current-user",
-  name: "Jordan Casey",
-  bio: "Digital creator and social media enthusiast",
-  avatar: undefined,
-  postsCount: 24,
-  friendsCount: 156,
-};
-
-const userPosts: Post[] = [
-  {
-    id: "p1",
-    content: "Working on some new music today! Can't wait to share it with everyone.",
-    author: {
-      id: userProfile.id,
-      name: userProfile.name,
-      avatar: userProfile.avatar,
-    },
-    createdAt: "2025-04-18T16:30:00",
-    likes: 28,
-    comments: 7,
-    mediaType: "voice",
-    mediaUrl: "https://assets.mixkit.co/sfx/preview/mixkit-guitar-string-tone-2326.mp3",
-    privacy: "public",
-  },
-  {
-    id: "p2",
-    content: "Beautiful day at the park!",
-    author: {
-      id: userProfile.id,
-      name: userProfile.name,
-      avatar: userProfile.avatar,
-    },
-    createdAt: "2025-04-16T12:45:00",
-    likes: 42,
-    comments: 5,
-    mediaType: "photo",
-    mediaUrl: "https://images.unsplash.com/photo-1476820865390-c52aeebb9891?q=80&w=2070&auto=format&fit=crop",
-    privacy: "friends",
-  },
-];
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import EditProfileForm from "@/components/profile/EditProfileForm";
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("posts");
-  const [posts, setPosts] = useState<Post[]>(userPosts);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [profileData, setProfileData] = useState({
+    name: "",
+    bio: "",
+    avatar: "",
+    coverPhoto: "",
+    postsCount: 0,
+    friendsCount: 0,
+  });
+  
+  const { user, isLoading } = useAuthSession();
+  const navigate = useNavigate();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!isLoading && !user) {
+      navigate("/auth");
+      return;
+    }
+
+    // Fetch profile data if authenticated
+    if (user) {
+      fetchProfileData();
+      fetchUserPosts();
+    }
+  }, [user, isLoading, navigate]);
+
+  const fetchProfileData = async () => {
+    try {
+      // Fetch profile from profiles table
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return;
+      }
+
+      // Count posts
+      const { count: postsCount } = await supabase
+        .from('posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user?.id);
+
+      // Count friends (if you have a friends table)
+      // This is a placeholder - implement according to your schema
+      const friendsCount = 0;
+
+      setProfileData({
+        name: data?.display_name || user?.user_metadata?.display_name || "User",
+        bio: data?.bio || "No bio available",
+        avatar: data?.avatar_url || undefined,
+        coverPhoto: data?.cover_url || undefined,
+        postsCount: postsCount || 0,
+        friendsCount: friendsCount || 0,
+      });
+    } catch (err) {
+      console.error("Error in profile fetch:", err);
+    }
+  };
+
+  const fetchUserPosts = async () => {
+    try {
+      const { data: postsData, error } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          profiles:user_id (
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching posts:", error);
+        return;
+      }
+
+      // Transform data to match Post type
+      const formattedPosts = postsData.map(post => ({
+        id: post.id,
+        content: post.content,
+        author: {
+          id: post.user_id,
+          name: post.profiles.display_name,
+          avatar: post.profiles.avatar_url,
+        },
+        createdAt: post.created_at,
+        likes: post.likes_count || 0,
+        comments: post.comments_count || 0,
+        mediaType: post.media_type,
+        mediaUrl: post.media_url,
+        privacy: post.privacy,
+      }));
+
+      setPosts(formattedPosts);
+    } catch (err) {
+      console.error("Error in posts fetch:", err);
+    }
+  };
+
+  const handleProfileUpdate = () => {
+    fetchProfileData();
+    fetchUserPosts();
+    setIsEditDialogOpen(false);
+    toast({
+      title: "Profile Updated",
+      description: "Your profile has been successfully updated.",
+    });
+  };
+
+  // For rendering different media types in tabs
+  const photosPosts = posts.filter(post => post.mediaType === "photo");
+  const voicePosts = posts.filter(post => post.mediaType === "voice");
 
   return (
     <Layout>
       <div className="max-w-3xl mx-auto">
         <div className="relative">
           {/* Cover Photo */}
-          <div className="h-48 rounded-lg bg-gradient-to-r from-violet-500 to-purple-500 relative">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="absolute bottom-3 right-3"
-            >
-              <Image className="h-4 w-4 mr-2" />
-              Change Cover
-            </Button>
+          <div 
+            className="h-48 rounded-lg relative bg-gradient-to-r from-violet-500 to-purple-500"
+            style={profileData.coverPhoto ? { backgroundImage: `url(${profileData.coverPhoto})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+          >
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="absolute bottom-3 right-3"
+                >
+                  <Image className="h-4 w-4 mr-2" />
+                  Change Cover
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Edit Profile</DialogTitle>
+                </DialogHeader>
+                <EditProfileForm 
+                  onSuccess={handleProfileUpdate} 
+                  initialData={profileData}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
           
           {/* Profile Info */}
           <div className="flex flex-col md:flex-row md:items-end md:justify-between relative -mt-16 px-4 md:px-6">
             <div className="flex flex-col md:flex-row md:items-end">
               <Avatar className="h-32 w-32 border-4 border-background">
-                <AvatarImage src={userProfile.avatar} />
-                <AvatarFallback className="text-4xl">{userProfile.name.charAt(0)}</AvatarFallback>
+                <AvatarImage src={profileData.avatar} />
+                <AvatarFallback className="text-4xl">{profileData.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="mt-4 md:mt-0 md:ml-4 mb-2">
-                <h1 className="text-3xl font-bold">{userProfile.name}</h1>
-                <p className="text-muted-foreground">{userProfile.bio}</p>
+                <h1 className="text-3xl font-bold">{profileData.name}</h1>
+                <p className="text-muted-foreground">{profileData.bio}</p>
                 <div className="flex gap-4 mt-2">
                   <div>
-                    <span className="font-semibold">{userProfile.postsCount}</span>{" "}
+                    <span className="font-semibold">{profileData.postsCount}</span>{" "}
                     <span className="text-muted-foreground">posts</span>
                   </div>
                   <div>
-                    <span className="font-semibold">{userProfile.friendsCount}</span>{" "}
+                    <span className="font-semibold">{profileData.friendsCount}</span>{" "}
                     <span className="text-muted-foreground">friends</span>
                   </div>
                 </div>
               </div>
             </div>
             <div className="mt-4 md:mt-0">
-              <Button variant="outline" size="sm">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Profile
-              </Button>
+              <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
             </div>
           </div>
         </div>
@@ -109,23 +211,37 @@ const ProfilePage = () => {
               <TabsTrigger value="voice">Voice Posts</TabsTrigger>
             </TabsList>
             <TabsContent value="posts" className="mt-6 space-y-4">
-              {posts.map(post => (
-                <PostCard key={post.id} post={post} />
-              ))}
+              {posts.length > 0 ? (
+                posts.map(post => (
+                  <PostCard key={post.id} post={post} />
+                ))
+              ) : (
+                <div className="text-center py-10">
+                  <p className="text-muted-foreground">No posts yet</p>
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="photos" className="mt-6 space-y-4">
-              {posts
-                .filter(post => post.mediaType === "photo")
-                .map(post => (
+              {photosPosts.length > 0 ? (
+                photosPosts.map(post => (
                   <PostCard key={post.id} post={post} />
-                ))}
+                ))
+              ) : (
+                <div className="text-center py-10">
+                  <p className="text-muted-foreground">No photo posts yet</p>
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="voice" className="mt-6 space-y-4">
-              {posts
-                .filter(post => post.mediaType === "voice")
-                .map(post => (
+              {voicePosts.length > 0 ? (
+                voicePosts.map(post => (
                   <PostCard key={post.id} post={post} />
-                ))}
+                ))
+              ) : (
+                <div className="text-center py-10">
+                  <p className="text-muted-foreground">No voice posts yet</p>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
