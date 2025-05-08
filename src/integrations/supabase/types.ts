@@ -120,6 +120,30 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_features: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          icon: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -180,16 +204,133 @@ export type Database = {
         }
         Relationships: []
       }
+      smart_notifications: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          feature_id: string | null
+          id: string
+          message: string
+          title: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          feature_id?: string | null
+          id?: string
+          message: string
+          title: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          feature_id?: string | null
+          id?: string
+          message?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_notifications_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "premium_features"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_notifications: {
+        Row: {
+          dismissed: boolean | null
+          id: string
+          notification_id: string
+          shown_at: string
+          user_id: string
+        }
+        Insert: {
+          dismissed?: boolean | null
+          id?: string
+          notification_id: string
+          shown_at?: string
+          user_id: string
+        }
+        Update: {
+          dismissed?: boolean | null
+          id?: string
+          notification_id?: string
+          shown_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "smart_notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_premium_access: {
+        Row: {
+          created_at: string
+          daily_usage_count: number | null
+          id: string
+          is_premium: boolean
+          last_usage_date: string | null
+          premium_end_date: string | null
+          premium_start_date: string | null
+          trial_end_date: string | null
+          trial_start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_usage_count?: number | null
+          id?: string
+          is_premium?: boolean
+          last_usage_date?: string | null
+          premium_end_date?: string | null
+          premium_start_date?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_usage_count?: number | null
+          id?: string
+          is_premium?: boolean
+          last_usage_date?: string | null
+          premium_end_date?: string | null
+          premium_start_date?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      can_access_premium: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       count_user_posts: {
         Args: { user_id: string }
         Returns: {
           count: number
         }[]
+      }
+      track_premium_usage: {
+        Args: { user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

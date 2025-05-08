@@ -1,4 +1,5 @@
 
+import { useEffect, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,19 +8,37 @@ import { Check, Diamond } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuthSession } from "@/hooks/useAuthSession";
-import { useEffect } from "react";
+import usePremiumAccess from "@/hooks/usePremiumAccess";
+import PremiumFeatureCard from "@/components/premium/PremiumFeatureCard";
+import { fetchPremiumFeatures, PremiumFeature } from "@/utils/premiumUtils";
+import SmartNotificationManager from "@/components/premium/SmartNotificationManager";
 
 const PremiumPage = () => {
-  const { user, isLoading } = useAuthSession();
+  const { user, isLoading: authLoading } = useAuthSession();
   const navigate = useNavigate();
+  const [features, setFeatures] = useState<PremiumFeature[]>([]);
+  const [isLoadingFeatures, setIsLoadingFeatures] = useState(true);
+  const { 
+    canAccess, 
+    isSubscribed, 
+    isTrial, 
+    trialEndsAt, 
+    usagesLeft 
+  } = usePremiumAccess();
 
   useEffect(() => {
     // Redirect to login if not authenticated
-    if (!isLoading && !user) {
+    if (!authLoading && !user) {
       navigate("/auth");
       return;
     }
-  }, [user, isLoading, navigate]);
+
+    // Load premium features
+    fetchPremiumFeatures().then(data => {
+      setFeatures(data);
+      setIsLoadingFeatures(false);
+    });
+  }, [user, authLoading, navigate]);
 
   const handleUpgrade = () => {
     // This would connect to a payment processor in a real implementation
@@ -29,58 +48,42 @@ const PremiumPage = () => {
     });
   };
 
-  const premiumFeatures = [
-    {
-      icon: "🔒",
-      title: "Memory Vault",
-      description: "Upload encrypted photos, videos, and voice notes to create a long-term digital time capsule."
-    },
-    {
-      icon: "📊",
-      title: "Emotion Timeline",
-      description: "Organize memories automatically based on emotions (happy, sad, excited, etc.)."
-    },
-    {
-      icon: "👪",
-      title: "Private Legacy Mode",
-      description: "Share memories with selected family and friends after you go inactive."
-    },
-    {
-      icon: "💬",
-      title: "Deep Private Messaging",
-      description: "Create a messenger system with emotional reactions (Anxiety, Excited, Cry, etc.)."
-    },
-    {
-      icon: "👥",
-      title: "Memory Collaboration",
-      description: "Allow multiple users to upload media to the same memory."
-    },
-    {
-      icon: "🎬",
-      title: "Memory Reels",
-      description: "Auto-generate 1-minute reels summarizing important memories."
-    },
-    {
-      icon: "📴",
-      title: "Offline Memories",
-      description: "Save and view memories offline, without an internet connection."
-    },
-    {
-      icon: "🛍️",
-      title: "Marketplace for Memories",
-      description: "Access artists/photographers selling memory-related templates and filters."
-    },
-    {
-      icon: "🏠",
-      title: "Customizable Memory Spaces",
-      description: "Organize memories into rooms like \"School Life\", \"My Pet's Life\", etc."
-    },
-    {
-      icon: "🌍",
-      title: "Global Memory Wall",
-      description: "Optional public posting feature to share beautiful memories with others."
+  const renderAccessStatus = () => {
+    if (isSubscribed) {
+      return (
+        <div className="mb-6 text-center">
+          <Badge className="bg-primary text-lg py-2 px-4">Premium Member</Badge>
+          <p className="mt-3 text-muted-foreground">
+            Thank you for being a premium member! Enjoy unlimited access to all features.
+          </p>
+        </div>
+      );
     }
-  ];
+
+    if (isTrial) {
+      const daysLeft = trialEndsAt ? 
+        Math.ceil((trialEndsAt.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
+      
+      return (
+        <div className="mb-6 text-center">
+          <Badge variant="outline" className="text-lg py-2 px-4">Trial Access</Badge>
+          <p className="mt-3 text-muted-foreground">
+            You have {daysLeft} day{daysLeft !== 1 ? 's' : ''} left in your trial period.
+            You can use premium features {usagesLeft} more time{usagesLeft !== 1 ? 's' : ''} today.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mb-6 text-center">
+        <Badge variant="destructive" className="text-lg py-2 px-4">Free Account</Badge>
+        <p className="mt-3 text-muted-foreground">
+          Upgrade to premium for unlimited access to all features.
+        </p>
+      </div>
+    );
+  };
 
   return (
     <Layout>
@@ -89,6 +92,8 @@ const PremiumPage = () => {
           <Diamond className="h-8 w-8 mr-2 text-primary" />
           <h1 className="text-3xl font-bold">Memoria Premium</h1>
         </div>
+        
+        {renderAccessStatus()}
         
         <div className="text-center mb-12">
           <p className="text-xl text-muted-foreground mb-6">
@@ -104,17 +109,24 @@ const PremiumPage = () => {
         
         {/* Premium Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {premiumFeatures.map((feature, index) => (
-            <Card key={index} className="border-border hover:border-primary transition-colors">
-              <CardHeader>
-                <div className="text-3xl mb-2">{feature.icon}</div>
-                <CardTitle>{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>{feature.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+          {isLoadingFeatures ? (
+            Array.from({ length: 6 }).map((_, index) => (
+              <Card key={index} className="border-border animate-pulse">
+                <CardHeader>
+                  <div className="h-8 w-8 bg-muted rounded-full mb-2"></div>
+                  <div className="h-6 w-3/4 bg-muted rounded"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-4 w-full bg-muted rounded mb-2"></div>
+                  <div className="h-4 w-5/6 bg-muted rounded"></div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            features.map((feature) => (
+              <PremiumFeatureCard key={feature.id} feature={feature} />
+            ))
+          )}
         </div>
         
         {/* Comparison Table */}
@@ -185,6 +197,9 @@ const PremiumPage = () => {
           <p className="mt-2">For business inquiries, please <a href="/contact" className="text-primary hover:underline">contact us</a>.</p>
         </div>
       </div>
+      
+      {/* Smart Notification Manager */}
+      <SmartNotificationManager />
     </Layout>
   );
 };

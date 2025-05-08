@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { toast } from "@/components/ui/use-toast";
+import usePremiumAccess from "@/hooks/usePremiumAccess";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { user, signOut } = useAuthSession();
+  const { isSubscribed, isTrial } = usePremiumAccess();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -33,6 +35,19 @@ const Navbar = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
+  };
+
+  // Function to render premium indicator
+  const renderPremiumIndicator = () => {
+    if (isSubscribed) {
+      return <span className="absolute -top-1 -right-1 h-3 w-3 bg-primary rounded-full"></span>;
+    }
+    
+    if (isTrial) {
+      return <span className="absolute -top-1 -right-1 h-3 w-3 bg-amber-400 rounded-full animate-pulse"></span>;
+    }
+    
+    return null;
   };
 
   return (
@@ -63,8 +78,9 @@ const Navbar = () => {
             <Link to="/notifications" className="text-foreground hover:text-primary hover:bg-secondary p-3 rounded-lg">
               <Bell className="h-6 w-6" />
             </Link>
-            <Link to="/premium" className="text-primary hover:text-primary/90 hover:bg-secondary p-3 rounded-lg">
+            <Link to="/premium" className="text-primary hover:text-primary/90 hover:bg-secondary p-3 rounded-lg relative">
               <Diamond className="h-6 w-6" />
+              {renderPremiumIndicator()}
             </Link>
             <div className="relative group">
               <Button variant="ghost" className="p-3 rounded-lg">
@@ -74,6 +90,9 @@ const Navbar = () => {
                 <div className="py-1">
                   <Link to="/profile" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary">
                     Profile
+                  </Link>
+                  <Link to="/premium-features" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary">
+                    Premium Features
                   </Link>
                   <Link to="/contact" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary">
                     Contact Us
@@ -206,6 +225,16 @@ const Navbar = () => {
               <div className="flex items-center">
                 <Diamond className="mr-3 h-5 w-5" />
                 Premium
+              </div>
+            </Link>
+            <Link 
+              to="/premium-features" 
+              className="block px-3 py-2 rounded-md text-base font-medium text-foreground hover:bg-secondary"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <div className="flex items-center">
+                <Diamond className="mr-3 h-5 w-5" />
+                Premium Features
               </div>
             </Link>
             <Link 

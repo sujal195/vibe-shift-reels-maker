@@ -82,3 +82,35 @@ export const countUserPosts = async (userId: string) => {
     return 0;
   }
 };
+
+/**
+ * Check if the current logged-in user has premium access
+ */
+export const checkUserPremiumAccess = async () => {
+  try {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error("Error getting session:", sessionError);
+      return false;
+    }
+    
+    const userId = sessionData?.session?.user?.id;
+    if (!userId) {
+      return false;
+    }
+    
+    const { data, error } = await supabase
+      .rpc('can_access_premium', { user_id: userId });
+    
+    if (error) {
+      console.error("Error checking premium access:", error);
+      return false;
+    }
+    
+    return !!data;
+  } catch (err) {
+    console.error("Exception checking premium access:", err);
+    return false;
+  }
+};

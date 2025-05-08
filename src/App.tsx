@@ -17,6 +17,7 @@ import InvitationCodePage from "./pages/InvitationCodePage";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
 import ContactPage from "./pages/ContactPage";
 import PremiumPage from "./pages/PremiumPage";
+import PremiumFeaturesPage from "./pages/PremiumFeaturesPage";
 import { AuthProvider, useAuthSession } from "@/hooks/useAuthSession";
 
 const queryClient = new QueryClient();
@@ -77,6 +78,7 @@ const App = () => (
               <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/premium" element={<ProtectedRoute element={<PremiumPage />} />} />
+              <Route path="/premium-features" element={<ProtectedRoute element={<PremiumFeaturesPage />} />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

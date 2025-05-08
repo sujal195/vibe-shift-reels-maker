@@ -1,22 +1,22 @@
 
 import { ReactNode } from "react";
 import Navbar from "./Navbar";
+import { cn } from "@/lib/utils";
+import SmartNotificationManager from "../premium/SmartNotificationManager";
 
 interface LayoutProps {
   children: ReactNode;
+  className?: string;
 }
 
-const Layout = ({ children }: LayoutProps) => {
+const Layout = ({ children, className }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-      <main className="pt-16 w-full">
+      <main className={cn("pt-16 min-h-[calc(100vh-4rem)]", className)}>
         {children}
       </main>
-      <footer className="text-center p-4 text-sm text-muted-foreground border-t border-border">
-        <p>MEMORIA – Your Life as a Living Timeline</p>
-        <p className="mt-1 text-xs">Created By: Sujal Giri</p>
-      </footer>
+      <SmartNotificationManager />
     </div>
   );
 };
