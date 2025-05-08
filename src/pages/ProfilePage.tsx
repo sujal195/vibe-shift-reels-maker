@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,7 +11,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import EditProfileForm from "@/components/profile/EditProfileForm";
-import { safeQuery } from "@/utils/supabaseUtils";
+import { fetchUserPosts, fetchUserProfile, countUserPosts } from "@/utils/supabaseUtils";
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("posts");
@@ -38,7 +37,7 @@ const ProfilePage = () => {
 
     if (user) {
       fetchProfileData();
-      fetchUserPosts();
+      fetchUserPostsData();
     }
   }, [user, isLoading, navigate]);
 
@@ -46,35 +45,17 @@ const ProfilePage = () => {
     try {
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-        return;
-      }
+      const profileData = await fetchUserProfile(user.id);
+      if (!profileData) return;
 
       // Get post count
-      let postsCount = 0;
-      try {
-        const postsApi = await safeQuery('posts');
-        const { count } = await postsApi
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
-        
-        postsCount = count || 0;
-      } catch (e) {
-        console.error("Error counting posts:", e);
-      }
+      const postsCount = await countUserPosts(user.id);
 
       setProfileData({
-        name: data?.display_name || user.user_metadata?.display_name || "User",
-        bio: data?.bio || "No bio available",
-        avatar: data?.avatar_url || undefined,
-        coverPhoto: data?.cover_url || undefined,
+        name: profileData?.display_name || user.user_metadata?.display_name || "User",
+        bio: profileData?.bio || "No bio available",
+        avatar: profileData?.avatar_url || undefined,
+        coverPhoto: profileData?.cover_url || undefined,
         postsCount,
         friendsCount: 0 // Placeholder for future friends feature
       });
@@ -83,56 +64,34 @@ const ProfilePage = () => {
     }
   };
 
-  const fetchUserPosts = async () => {
-    try {
-      if (!user) return;
-      
-      try {
-        const postsApi = await safeQuery('posts');
-        const { data: postsData, error } = await postsApi
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+  const fetchUserPostsData = async () => {
+    if (!user) return;
+    
+    const postsData = await fetchUserPosts(user.id);
+    
+    // Transform posts data into Post type
+    const formattedPosts: Post[] = postsData.map((post: any) => ({
+      id: post.id || '',
+      content: post.content || '',
+      author: {
+        id: user.id,
+        name: profileData.name || user.email?.split('@')[0] || 'User',
+        avatar: profileData.avatar,
+      },
+      createdAt: post.created_at || new Date().toISOString(),
+      likes: post.likes_count || 0,
+      comments: post.comments_count || 0,
+      mediaType: post.media_type as "photo" | "voice" | undefined,
+      mediaUrl: post.media_url,
+      privacy: post.privacy as "public" | "friends" | "private",
+    }));
 
-        if (error) {
-          console.error("Error fetching posts:", error);
-          return;
-        }
-
-        if (!postsData) {
-          setPosts([]);
-          return;
-        }
-
-        // Transform posts data into Post type
-        const formattedPosts: Post[] = postsData.map((post: any) => ({
-          id: post.id || '',
-          content: post.content || '',
-          author: {
-            id: user.id,
-            name: profileData.name || user.email?.split('@')[0] || 'User',
-            avatar: profileData.avatar,
-          },
-          createdAt: post.created_at || new Date().toISOString(),
-          likes: post.likes_count || 0,
-          comments: post.comments_count || 0,
-          mediaType: post.media_type as "photo" | "voice" | undefined,
-          mediaUrl: post.media_url,
-          privacy: post.privacy as "public" | "friends" | "private",
-        }));
-
-        setPosts(formattedPosts);
-      } catch (err) {
-        console.error("Error fetching posts:", err);
-      }
-    } catch (err) {
-      console.error("Error in posts fetch:", err);
-    }
+    setPosts(formattedPosts);
   };
 
   const handleProfileUpdate = () => {
     fetchProfileData();
-    fetchUserPosts();
+    fetchUserPostsData();
     setIsEditDialogOpen(false);
     toast({
       title: "Profile Updated",

@@ -185,7 +185,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      count_user_posts: {
+        Args: { user_id: string }
+        Returns: {
+          count: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
