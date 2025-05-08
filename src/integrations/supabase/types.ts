@@ -81,11 +81,51 @@ export type Database = {
         }
         Relationships: []
       }
+      posts: {
+        Row: {
+          comments_count: number | null
+          content: string | null
+          created_at: string
+          id: string
+          likes_count: number | null
+          media_type: string | null
+          media_url: string | null
+          privacy: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          likes_count?: number | null
+          media_type?: string | null
+          media_url?: string | null
+          privacy?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          likes_count?: number | null
+          media_type?: string | null
+          media_url?: string | null
+          privacy?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           badge: string | null
           bio: string | null
+          cover_url: string | null
           created_at: string | null
           display_name: string | null
           id: string
@@ -97,6 +137,7 @@ export type Database = {
           avatar_url?: string | null
           badge?: string | null
           bio?: string | null
+          cover_url?: string | null
           created_at?: string | null
           display_name?: string | null
           id: string
@@ -108,6 +149,7 @@ export type Database = {
           avatar_url?: string | null
           badge?: string | null
           bio?: string | null
+          cover_url?: string | null
           created_at?: string | null
           display_name?: string | null
           id?: string

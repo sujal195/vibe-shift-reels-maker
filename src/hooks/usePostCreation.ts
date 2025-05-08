@@ -1,9 +1,10 @@
 
-import { useState, useRef } from "react";
-import { PostPrivacy } from "@/components/post/create/PrivacySelector";
+import { useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuthSession } from "./useAuthSession";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import { toast } from "@/components/ui/use-toast";
+import { PostPrivacy } from "@/components/post/create/PrivacySelector";
+import { safeQuery } from "@/utils/supabaseUtils";
 
 export type PostType = "text" | "photo" | "voice";
 
@@ -40,6 +41,7 @@ export const usePostCreation = () => {
     setAudioUrl(url);
     setIsRecording(false);
     setRecordingComplete(true);
+    setPostType("voice");
   };
 
   const startRecording = () => {
@@ -83,8 +85,8 @@ export const usePostCreation = () => {
         .eq('id', user.id)
         .single();
       
-      const { data, error } = await supabase
-        .from('posts')
+      const postsApi = await safeQuery('posts');
+      const { data, error } = await postsApi
         .insert({
           user_id: user.id,
           content,

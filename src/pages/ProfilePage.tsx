@@ -4,7 +4,7 @@ import Layout from "@/components/layout/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Edit, Image, Mic } from "lucide-react";
+import { Edit, Image } from "lucide-react";
 import PostCard, { Post } from "@/components/post/PostCard";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import EditProfileForm from "@/components/profile/EditProfileForm";
+import { safeQuery } from "@/utils/supabaseUtils";
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("posts");
@@ -30,13 +31,11 @@ const ProfilePage = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Redirect to login if not authenticated
     if (!isLoading && !user) {
       navigate("/auth");
       return;
     }
 
-    // Fetch profile data if authenticated
     if (user) {
       fetchProfileData();
       fetchUserPosts();
@@ -47,7 +46,6 @@ const ProfilePage = () => {
     try {
       if (!user) return;
 
-      // Fetch profile from profiles table
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -59,37 +57,26 @@ const ProfilePage = () => {
         return;
       }
 
-      // Count posts using a separate query
+      // Get post count
       let postsCount = 0;
       try {
-        const { count } = await supabase
-          .rpc('count_user_posts', { user_id: user.id });
+        const postsApi = await safeQuery('posts');
+        const { count } = await postsApi
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+        
         postsCount = count || 0;
       } catch (e) {
         console.error("Error counting posts:", e);
-        // Fallback: Count locally if RPC doesn't exist
-        try {
-          const { count } = await supabase
-            .from('posts')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id);
-          postsCount = count || 0;
-        } catch (e) {
-          console.error("Error in fallback post count:", e);
-        }
       }
 
-      // Count friends (if you have a friends table)
-      // This is a placeholder - implement according to your schema
-      const friendsCount = 0;
-
       setProfileData({
-        name: data?.display_name || user?.user_metadata?.display_name || "User",
+        name: data?.display_name || user.user_metadata?.display_name || "User",
         bio: data?.bio || "No bio available",
         avatar: data?.avatar_url || undefined,
         coverPhoto: data?.cover_url || undefined,
-        postsCount: postsCount,
-        friendsCount: friendsCount || 0,
+        postsCount,
+        friendsCount: 0 // Placeholder for future friends feature
       });
     } catch (err) {
       console.error("Error in profile fetch:", err);
@@ -100,62 +87,44 @@ const ProfilePage = () => {
     try {
       if (!user) return;
       
-      // Check if posts table exists using introspection
-      const { error: tableCheckError } = await supabase
-        .from('posts')
-        .select('id')
-        .limit(1);
-      
-      // If table doesn't exist, just return
-      if (tableCheckError) {
-        console.log("Posts table may not exist yet:", tableCheckError.message);
-        return;
+      try {
+        const postsApi = await safeQuery('posts');
+        const { data: postsData, error } = await postsApi
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error("Error fetching posts:", error);
+          return;
+        }
+
+        if (!postsData) {
+          setPosts([]);
+          return;
+        }
+
+        // Transform posts data into Post type
+        const formattedPosts: Post[] = postsData.map((post: any) => ({
+          id: post.id || '',
+          content: post.content || '',
+          author: {
+            id: user.id,
+            name: profileData.name || user.email?.split('@')[0] || 'User',
+            avatar: profileData.avatar,
+          },
+          createdAt: post.created_at || new Date().toISOString(),
+          likes: post.likes_count || 0,
+          comments: post.comments_count || 0,
+          mediaType: post.media_type as "photo" | "voice" | undefined,
+          mediaUrl: post.media_url,
+          privacy: post.privacy as "public" | "friends" | "private",
+        }));
+
+        setPosts(formattedPosts);
+      } catch (err) {
+        console.error("Error fetching posts:", err);
       }
-
-      // If table exists, fetch posts
-      const { data: postsData, error } = await supabase
-        .from('posts')
-        .select(`
-          id,
-          content,
-          created_at,
-          user_id,
-          likes_count,
-          comments_count,
-          media_type,
-          media_url,
-          privacy,
-          profiles:user_id (
-            display_name,
-            avatar_url
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error("Error fetching posts:", error);
-        return;
-      }
-
-      // Transform data to match Post type
-      const formattedPosts = postsData.map(post => ({
-        id: post.id,
-        content: post.content,
-        author: {
-          id: post.user_id,
-          name: post.profiles?.display_name || user.email?.split('@')[0] || 'User',
-          avatar: post.profiles?.avatar_url,
-        },
-        createdAt: post.created_at,
-        likes: post.likes_count || 0,
-        comments: post.comments_count || 0,
-        mediaType: post.media_type,
-        mediaUrl: post.media_url,
-        privacy: post.privacy,
-      }));
-
-      setPosts(formattedPosts);
     } catch (err) {
       console.error("Error in posts fetch:", err);
     }
@@ -178,67 +147,65 @@ const ProfilePage = () => {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto">
-        <div className="relative">
-          {/* Cover Photo */}
-          <div 
-            className="h-48 rounded-lg relative bg-gradient-to-r from-violet-500 to-purple-500"
-            style={profileData.coverPhoto ? { backgroundImage: `url(${profileData.coverPhoto})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
-          >
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="absolute bottom-3 right-3"
-                >
-                  <Image className="h-4 w-4 mr-2" />
-                  Change Cover
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Edit Profile</DialogTitle>
-                </DialogHeader>
-                <EditProfileForm 
-                  onSuccess={handleProfileUpdate} 
-                  initialData={profileData}
-                />
-              </DialogContent>
-            </Dialog>
-          </div>
-          
-          {/* Profile Info */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between relative -mt-16 px-4 md:px-6">
-            <div className="flex flex-col md:flex-row md:items-end">
-              <Avatar className="h-32 w-32 border-4 border-background">
-                <AvatarImage src={profileData.avatar} />
-                <AvatarFallback className="text-4xl">{profileData.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="mt-4 md:mt-0 md:ml-4 mb-2">
-                <h1 className="text-3xl font-bold">{profileData.name}</h1>
-                <p className="text-muted-foreground">{profileData.bio}</p>
-                <div className="flex gap-4 mt-2">
-                  <div>
-                    <span className="font-semibold">{profileData.postsCount}</span>{" "}
-                    <span className="text-muted-foreground">posts</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold">{profileData.friendsCount}</span>{" "}
-                    <span className="text-muted-foreground">friends</span>
-                  </div>
+        {/* Cover Photo */}
+        <div 
+          className="h-48 rounded-lg relative bg-gradient-to-r from-violet-500 to-purple-500"
+          style={profileData.coverPhoto ? { backgroundImage: `url(${profileData.coverPhoto})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+        >
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="absolute bottom-3 right-3"
+              >
+                <Image className="h-4 w-4 mr-2" />
+                Change Cover
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Edit Profile</DialogTitle>
+              </DialogHeader>
+              <EditProfileForm 
+                onSuccess={handleProfileUpdate} 
+                initialData={profileData}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+        {/* Profile Info */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between relative -mt-16 px-4 md:px-6">
+          <div className="flex flex-col md:flex-row md:items-end">
+            <Avatar className="h-32 w-32 border-4 border-background">
+              <AvatarImage src={profileData.avatar} />
+              <AvatarFallback className="text-4xl">{profileData.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="mt-4 md:mt-0 md:ml-4 mb-2">
+              <h1 className="text-3xl font-bold">{profileData.name}</h1>
+              <p className="text-muted-foreground">{profileData.bio}</p>
+              <div className="flex gap-4 mt-2">
+                <div>
+                  <span className="font-semibold">{profileData.postsCount}</span>{" "}
+                  <span className="text-muted-foreground">posts</span>
+                </div>
+                <div>
+                  <span className="font-semibold">{profileData.friendsCount}</span>{" "}
+                  <span className="text-muted-foreground">friends</span>
                 </div>
               </div>
             </div>
-            <div className="mt-4 md:mt-0">
-              <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Profile
-                  </Button>
-                </DialogTrigger>
-              </Dialog>
-            </div>
+          </div>
+          <div className="mt-4 md:mt-0">
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
+              </DialogTrigger>
+            </Dialog>
           </div>
         </div>
 
