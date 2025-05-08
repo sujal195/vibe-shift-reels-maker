@@ -1,10 +1,15 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { PostgrestQueryBuilder } from '@supabase/supabase-js';
+import { Database } from "@/integrations/supabase/types";
+
+// Type for the result of a safeQuery
+type SafeQueryResult = PostgrestQueryBuilder<any, any, any, any>;
 
 /**
  * A utility function that safely runs queries against tables that might not be in the TypeScript definitions yet
  */
-export const safeQuery = async (table: string) => {
+export const safeQuery = async (table: string): Promise<SafeQueryResult> => {
   // @ts-ignore - This is a workaround for tables not in TS definitions yet
   return supabase.from(table);
 };
