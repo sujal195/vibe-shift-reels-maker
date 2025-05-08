@@ -45,11 +45,13 @@ const ProfilePage = () => {
 
   const fetchProfileData = async () => {
     try {
+      if (!user) return;
+
       // Fetch profile from profiles table
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
 
       if (error) {
@@ -57,11 +59,25 @@ const ProfilePage = () => {
         return;
       }
 
-      // Count posts
-      const { count: postsCount } = await supabase
-        .from('posts')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user?.id);
+      // Count posts using a separate query
+      let postsCount = 0;
+      try {
+        const { count } = await supabase
+          .rpc('count_user_posts', { user_id: user.id });
+        postsCount = count || 0;
+      } catch (e) {
+        console.error("Error counting posts:", e);
+        // Fallback: Count locally if RPC doesn't exist
+        try {
+          const { count } = await supabase
+            .from('posts')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id);
+          postsCount = count || 0;
+        } catch (e) {
+          console.error("Error in fallback post count:", e);
+        }
+      }
 
       // Count friends (if you have a friends table)
       // This is a placeholder - implement according to your schema
@@ -72,7 +88,7 @@ const ProfilePage = () => {
         bio: data?.bio || "No bio available",
         avatar: data?.avatar_url || undefined,
         coverPhoto: data?.cover_url || undefined,
-        postsCount: postsCount || 0,
+        postsCount: postsCount,
         friendsCount: friendsCount || 0,
       });
     } catch (err) {
@@ -82,16 +98,39 @@ const ProfilePage = () => {
 
   const fetchUserPosts = async () => {
     try {
+      if (!user) return;
+      
+      // Check if posts table exists using introspection
+      const { error: tableCheckError } = await supabase
+        .from('posts')
+        .select('id')
+        .limit(1);
+      
+      // If table doesn't exist, just return
+      if (tableCheckError) {
+        console.log("Posts table may not exist yet:", tableCheckError.message);
+        return;
+      }
+
+      // If table exists, fetch posts
       const { data: postsData, error } = await supabase
         .from('posts')
         .select(`
-          *,
+          id,
+          content,
+          created_at,
+          user_id,
+          likes_count,
+          comments_count,
+          media_type,
+          media_url,
+          privacy,
           profiles:user_id (
             display_name,
             avatar_url
           )
         `)
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -105,8 +144,8 @@ const ProfilePage = () => {
         content: post.content,
         author: {
           id: post.user_id,
-          name: post.profiles.display_name,
-          avatar: post.profiles.avatar_url,
+          name: post.profiles?.display_name || user.email?.split('@')[0] || 'User',
+          avatar: post.profiles?.avatar_url,
         },
         createdAt: post.created_at,
         likes: post.likes_count || 0,

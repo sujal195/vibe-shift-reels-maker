@@ -1,38 +1,76 @@
 
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Globe, Lock, Users } from "lucide-react";
 
 export type PostPrivacy = "public" | "friends" | "private";
 
-interface PrivacySelectorProps {
+export interface PrivacySelectorProps {
   privacy: PostPrivacy;
   onPrivacyChange: (value: PostPrivacy) => void;
+  disabled?: boolean; // Added disabled prop
 }
 
-const PrivacySelector = ({ privacy, onPrivacyChange }: PrivacySelectorProps) => {
-  const handlePrivacyChange = (value: string) => {
-    onPrivacyChange(value as PostPrivacy);
+const PrivacySelector = ({ privacy, onPrivacyChange, disabled = false }: PrivacySelectorProps) => {
+  const getPrivacyIcon = () => {
+    switch (privacy) {
+      case "public":
+        return <Globe className="h-4 w-4 mr-2" />;
+      case "friends":
+        return <Users className="h-4 w-4 mr-2" />;
+      case "private":
+        return <Lock className="h-4 w-4 mr-2" />;
+    }
+  };
+
+  const getPrivacyText = () => {
+    switch (privacy) {
+      case "public":
+        return "Public";
+      case "friends":
+        return "Friends";
+      case "private":
+        return "Private";
+    }
   };
 
   return (
-    <RadioGroup 
-      value={privacy} 
-      onValueChange={handlePrivacyChange}
-      className="flex items-center gap-2"
-    >
-      <div className="flex items-center space-x-1">
-        <RadioGroupItem value="public" id="public" />
-        <Label htmlFor="public" className="text-xs cursor-pointer">Public</Label>
-      </div>
-      <div className="flex items-center space-x-1">
-        <RadioGroupItem value="friends" id="friends" />
-        <Label htmlFor="friends" className="text-xs cursor-pointer">Friends</Label>
-      </div>
-      <div className="flex items-center space-x-1">
-        <RadioGroupItem value="private" id="private" />
-        <Label htmlFor="private" className="text-xs cursor-pointer">Private</Label>
-      </div>
-    </RadioGroup>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" disabled={disabled}>
+          {getPrivacyIcon()}
+          {getPrivacyText()}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem
+          onClick={() => onPrivacyChange("public")}
+          className="flex items-center"
+        >
+          <Globe className="h-4 w-4 mr-2" />
+          Public
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onPrivacyChange("friends")}
+          className="flex items-center"
+        >
+          <Users className="h-4 w-4 mr-2" />
+          Friends
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onPrivacyChange("private")}
+          className="flex items-center"
+        >
+          <Lock className="h-4 w-4 mr-2" />
+          Private
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
