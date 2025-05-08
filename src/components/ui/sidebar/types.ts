@@ -1,13 +1,13 @@
 
 import { ReactNode } from "react"
-import { type TooltipContentProps } from "@radix-ui/react-tooltip"
+import type { TooltipContentProps } from "@radix-ui/react-tooltip"
 import { LucideIcon } from "lucide-react"
 import { VariantProps } from "class-variance-authority"
 import { sidebarMenuButtonVariants } from "./sidebar-menu-button"
 
 export type SidebarState = "expanded" | "collapsed"
 
-export type SidebarContext = {
+export interface SidebarContext {
   state: SidebarState
   open: boolean
   setOpen: (open: boolean) => void
@@ -22,5 +22,5 @@ export interface SidebarMenuButtonProps
     VariantProps<typeof sidebarMenuButtonVariants> {
   asChild?: boolean
   isActive?: boolean
-  tooltip?: string | React.ComponentProps<typeof TooltipContentProps>
+  tooltip?: string | Omit<TooltipContentProps, 'ref'>
 }
