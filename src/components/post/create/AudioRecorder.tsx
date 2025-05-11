@@ -1,7 +1,7 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, X } from "lucide-react";
+import { Mic, X, StopCircle } from "lucide-react";
 
 interface AudioRecorderProps {
   onAudioRecorded: (audioUrl: string) => void;
@@ -20,6 +20,8 @@ const AudioRecorder = ({
 }: AudioRecorderProps) => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const [recordingTime, setRecordingTime] = useState<number>(0);
+  const timerRef = useRef<number | null>(null);
 
   const startRecording = async () => {
     try {
@@ -41,7 +43,19 @@ const AudioRecorder = ({
         
         // Stop all audio tracks
         stream.getAudioTracks().forEach(track => track.stop());
+        
+        // Reset timer
+        if (timerRef.current) {
+          window.clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+        setRecordingTime(0);
       };
+
+      // Start the timer
+      timerRef.current = window.setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
 
       mediaRecorder.start();
     } catch (err) {
@@ -52,20 +66,58 @@ const AudioRecorder = ({
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
+      
+      // Stop timer
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     }
   };
+
+  // Format recording time as MM:SS
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  // Clean up timer when component unmounts
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
       {isRecording ? (
-        <Button 
-          variant="destructive" 
-          size="sm" 
-          onClick={stopRecording}
-        >
-          <span className="h-2 w-2 rounded-full bg-white mr-2 animate-pulse" />
-          Stop Recording
-        </Button>
+        <div className="flex flex-col gap-2 p-3 bg-secondary rounded-md mb-4 animate-pulse">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <span className="h-3 w-3 rounded-full bg-red-500 mr-2 animate-pulse"></span>
+              <span className="text-sm font-medium">Recording... {formatTime(recordingTime)}</span>
+            </div>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={stopRecording}
+              className="flex items-center"
+            >
+              <StopCircle className="h-4 w-4 mr-2" />
+              Stop
+            </Button>
+          </div>
+          <div className="w-full bg-muted rounded-full h-1">
+            <div 
+              className="bg-primary h-1 rounded-full" 
+              style={{ width: `${Math.min(recordingTime / 60, 1) * 100}%` }}
+            ></div>
+          </div>
+          <p className="text-xs text-muted-foreground">Maximum recording time: 1 minute</p>
+        </div>
       ) : (
         <Button 
           variant="ghost" 
