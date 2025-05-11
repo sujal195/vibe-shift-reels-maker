@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Mic, X, StopCircle } from "lucide-react";
 
 interface AudioRecorderProps {
-  onAudioRecorded: (audioUrl: string) => void;
+  onAudioRecorded: (audioBlob: Blob, audioUrl: string) => void;
   onCancel: () => void;
   isRecording: boolean;
   recordingComplete: boolean;
@@ -39,7 +39,7 @@ const AudioRecorder = ({
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/mp3' });
         const audioUrl = URL.createObjectURL(audioBlob);
-        onAudioRecorded(audioUrl);
+        onAudioRecorded(audioBlob, audioUrl);
         
         // Stop all audio tracks
         stream.getAudioTracks().forEach(track => track.stop());

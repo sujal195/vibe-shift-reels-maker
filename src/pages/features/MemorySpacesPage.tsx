@@ -1,4 +1,3 @@
-
 import Layout from "@/components/layout/Layout";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ColorPicker } from "./components/ColorPicker";
+import { ColorPicker } from "../features/components/ColorPicker";
 import { Badge } from "@/components/ui/badge";
 
 // Memory space colors
@@ -57,25 +56,6 @@ const sampleSpaces = [
     memories: 32
   },
 ];
-
-// Wrapper component for the color picker
-const ColorPicker = ({ value, onChange }: { value: string; onChange: (color: string) => void }) => {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {spaceColors.map((color) => (
-        <button
-          key={color}
-          type="button"
-          className={`w-8 h-8 rounded-full ${color} ${
-            value === color ? 'ring-2 ring-offset-2 ring-offset-background ring-primary' : ''
-          }`}
-          onClick={() => onChange(color)}
-          aria-label={`Select ${color} color`}
-        />
-      ))}
-    </div>
-  );
-};
 
 const MemorySpacesPage = () => {
   const { user } = useAuthSession();

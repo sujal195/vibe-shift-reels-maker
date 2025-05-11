@@ -1,4 +1,3 @@
-
 import Layout from "@/components/layout/Layout";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { Video, PlayCircle, Plus, Clock, TrendingUp, VideoOff, Heart } from "lucide-react";
@@ -80,7 +79,6 @@ const ReelsPage = () => {
     toast({
       title: "Liked",
       description: "You liked this reel",
-      variant: "success",
     });
   };
 
