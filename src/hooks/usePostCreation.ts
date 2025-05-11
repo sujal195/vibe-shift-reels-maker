@@ -1,165 +1,166 @@
 
-import { useCallback, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuthSession } from "@/hooks/useAuthSession";
+import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { PostPrivacy } from "@/components/post/create/PrivacySelector";
-import { safeQuery } from "@/utils/supabaseUtils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthSession } from "./useAuthSession";
 
-export type PostType = "text" | "photo" | "voice";
+type Privacy = "public" | "friends" | "private";
 
-export const usePostCreation = () => {
+export function usePostCreation() {
   const { user } = useAuthSession();
   const [content, setContent] = useState("");
-  const [privacy, setPrivacy] = useState<PostPrivacy>("public");
-  const [postType, setPostType] = useState<PostType>("text");
+  const [privacy, setPrivacy] = useState<Privacy>("public");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingComplete, setRecordingComplete] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isPosting, setIsPosting] = useState(false);
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
   };
 
-  const handlePrivacyChange = (value: PostPrivacy) => {
+  const handlePrivacyChange = (value: Privacy) => {
     setPrivacy(value);
   };
 
-  const handlePhotoSelect = (file: File, publicUrl: string) => {
-    setPhotoPreview(publicUrl);
-    setPostType("photo");
+  const handlePhotoSelect = (file: File, preview: string) => {
+    setPhotoFile(file);
+    setPhotoPreview(preview);
   };
 
   const handleRemovePhoto = () => {
+    setPhotoFile(null);
     setPhotoPreview(null);
-    setPostType("text");
-  };
-
-  const handleAudioRecorded = (url: string) => {
-    setAudioUrl(url);
-    setIsRecording(false);
-    setRecordingComplete(true);
-    setPostType("voice");
   };
 
   const startRecording = () => {
     setIsRecording(true);
-    setPostType("voice");
+    setRecordingComplete(false);
+    setAudioUrl(null);
+    setAudioBlob(null);
   };
 
   const cancelRecording = () => {
     setIsRecording(false);
     setRecordingComplete(false);
     setAudioUrl(null);
-    setPostType("text");
+    setAudioBlob(null);
   };
+
+  const handleAudioRecorded = (audioBlob: Blob, url: string) => {
+    setAudioBlob(audioBlob);
+    setAudioUrl(url);
+    setIsRecording(false);
+    setRecordingComplete(true);
+  };
+
+  const canPost = Boolean(user && (content.trim() || photoFile || audioBlob) && !isPosting);
 
   const handlePost = async () => {
     if (!user) {
       toast({
-        title: "Error",
-        description: "You must be signed in to create a post",
-        variant: "destructive"
+        title: "Sign in required",
+        description: "Please sign in to create a post",
+        variant: "destructive",
       });
       return;
     }
 
-    if (!content && !photoPreview && !audioUrl) {
-      toast({
-        title: "Error",
-        description: "Please add content, a photo, or an audio recording",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (!canPost) return;
 
     setIsPosting(true);
-    
+
     try {
-      // In a real app, this would make an API call to create a post
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('display_name')
-        .eq('id', user.id)
-        .single();
+      // First, handle media upload if needed
+      let mediaUrl = null;
+      let mediaType = null;
       
-      const postsApi = await safeQuery('posts');
-      const { data, error } = await postsApi
+      if (photoFile) {
+        const fileExt = photoFile.name.split('.').pop();
+        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('posts')
+          .upload(filePath, photoFile);
+
+        if (uploadError) {
+          throw new Error(`Error uploading file: ${uploadError.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('posts')
+          .getPublicUrl(filePath);
+
+        mediaUrl = urlData.publicUrl;
+        mediaType = 'image';
+      } else if (audioBlob) {
+        const filePath = `${user.id}/${Date.now()}.webm`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('posts')
+          .upload(filePath, audioBlob);
+
+        if (uploadError) {
+          throw new Error(`Error uploading audio: ${uploadError.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('posts')
+          .getPublicUrl(filePath);
+
+        mediaUrl = urlData.publicUrl;
+        mediaType = 'audio';
+      }
+
+      // Create post record
+      const { error: postError } = await supabase
+        .from('posts')
         .insert({
           user_id: user.id,
           content,
           privacy,
-          media_type: postType,
-          media_url: postType === "photo" ? photoPreview : audioUrl,
-          created_at: new Date().toISOString(),
-        })
-        .select();
-      
-      if (error) {
-        console.error("Error creating post:", error);
-        toast({
-          title: "Error",
-          description: "Failed to create post. Please try again.",
-          variant: "destructive"
+          media_url: mediaUrl,
+          media_type: mediaType,
         });
-        return;
-      }
 
-      // Notify admin about new post
-      try {
-        await fetch(`${window.location.origin.includes('localhost') 
-          ? 'https://gfhcmeicnbccihtyclbj.supabase.co' 
-          : window.location.origin}/functions/v1/notify-admin`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            type: 'post_created',
-            user: profile?.display_name || user.email,
-            email: user.email,
-            post: {
-              content,
-              mediaType: postType
-            }
-          }),
-        });
-      } catch (e) {
-        console.error('Failed to notify admin:', e);
+      if (postError) {
+        throw new Error(`Error creating post: ${postError.message}`);
       }
-
-      // Reset form
-      setContent("");
-      setPrivacy("public");
-      setPostType("text");
-      setPhotoPreview(null);
-      setRecordingComplete(false);
-      setAudioUrl(null);
 
       toast({
         title: "Post created",
-        description: "Your post has been created successfully"
+        description: "Your memory has been shared successfully!",
       });
-    } catch (error) {
-      console.error("Error in post creation:", error);
+
+      // Reset form
+      setContent("");
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      setAudioBlob(null);
+      setAudioUrl(null);
+      setRecordingComplete(false);
+      setPrivacy("public");
+      
+      // Trigger a page refresh to show the new post
+      window.location.reload();
+
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive"
+        title: "Error creating post",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsPosting(false);
     }
   };
 
-  const canPost = (!!content || !!photoPreview || recordingComplete) && !isPosting;
-
   return {
     content,
     privacy,
-    postType,
     photoPreview,
     isRecording,
     recordingComplete,
@@ -173,6 +174,6 @@ export const usePostCreation = () => {
     handleAudioRecorded,
     startRecording,
     cancelRecording,
-    handlePost
+    handlePost,
   };
-};
+}

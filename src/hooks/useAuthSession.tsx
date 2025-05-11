@@ -9,14 +9,43 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   signOut: () => Promise<void>;
+  previousUsers: Array<{email: string, lastSignIn: Date}>;
+  setPreviousUsers: React.Dispatch<React.SetStateAction<Array<{email: string, lastSignIn: Date}>>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Load previous users from localStorage
+const loadPreviousUsers = (): Array<{email: string, lastSignIn: Date}> => {
+  try {
+    const stored = localStorage.getItem('memoria-previous-users');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed.map((user: any) => ({
+        ...user,
+        lastSignIn: new Date(user.lastSignIn)
+      }));
+    }
+  } catch (error) {
+    console.error('Failed to parse previous users from localStorage:', error);
+  }
+  return [];
+};
+
+// Save previous users to localStorage
+const savePreviousUsers = (users: Array<{email: string, lastSignIn: Date}>) => {
+  try {
+    localStorage.setItem('memoria-previous-users', JSON.stringify(users));
+  } catch (error) {
+    console.error('Failed to save previous users to localStorage:', error);
+  }
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [previousUsers, setPreviousUsers] = useState<Array<{email: string, lastSignIn: Date}>>(loadPreviousUsers());
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -25,6 +54,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       setIsLoading(false);
       
+      // Track previous users for quick sign-in
+      if (session?.user?.email && event === 'SIGNED_IN') {
+        const email = session.user.email;
+        setPreviousUsers(prev => {
+          const filteredUsers = prev.filter(u => u.email !== email);
+          const updatedUsers = [
+            { email, lastSignIn: new Date() },
+            ...filteredUsers
+          ].slice(0, 5); // Keep only last 5 users
+          
+          savePreviousUsers(updatedUsers);
+          return updatedUsers;
+        });
+      }
+
       // Send notifications on auth events if user is logged in
       if (session?.user && (event === 'SIGNED_IN' || event === 'SIGNED_OUT')) {
         try {
@@ -96,7 +140,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, isLoading, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      isLoading, 
+      signOut,
+      previousUsers,
+      setPreviousUsers 
+    }}>
       {children}
     </AuthContext.Provider>
   );

@@ -19,7 +19,17 @@ import ContactPage from "./pages/ContactPage";
 import PremiumPage from "./pages/PremiumPage";
 import PremiumFeaturesPage from "./pages/PremiumFeaturesPage";
 import ReelsPage from "./pages/ReelsPage";
+import SettingsPage from "./pages/SettingsPage";
 import { AuthProvider, useAuthSession } from "@/hooks/useAuthSession";
+import MemoryVaultPage from "./pages/features/MemoryVaultPage";
+import EmotionTimelinePage from "./pages/features/EmotionTimelinePage";
+import PrivateLegacyModePage from "./pages/features/PrivateLegacyModePage";
+import DeepMessagingPage from "./pages/features/DeepMessagingPage";
+import CollaborationPage from "./pages/features/CollaborationPage";
+import OfflineMemoriesPage from "./pages/features/OfflineMemoriesPage";
+import MarketplacePage from "./pages/features/MarketplacePage";
+import MemorySpacesPage from "./pages/features/MemorySpacesPage";
+import GlobalWallPage from "./pages/features/GlobalWallPage";
 
 const queryClient = new QueryClient();
 
@@ -77,10 +87,23 @@ const App = () => (
               <Route path="/notifications" element={<ProtectedRoute element={<NotificationsPage />} />} />
               <Route path="/messages" element={<ProtectedRoute element={<MessagesPage />} />} />
               <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
+              <Route path="/settings" element={<ProtectedRoute element={<SettingsPage />} />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/premium" element={<ProtectedRoute element={<PremiumPage />} />} />
               <Route path="/premium-features" element={<ProtectedRoute element={<PremiumFeaturesPage />} />} />
               <Route path="/reels" element={<ProtectedRoute element={<ReelsPage />} />} />
+              
+              {/* Feature pages */}
+              <Route path="/memory-vault" element={<ProtectedRoute element={<MemoryVaultPage />} />} />
+              <Route path="/emotion-timeline" element={<ProtectedRoute element={<EmotionTimelinePage />} />} />
+              <Route path="/private-legacy" element={<ProtectedRoute element={<PrivateLegacyModePage />} />} />
+              <Route path="/deep-messaging" element={<ProtectedRoute element={<DeepMessagingPage />} />} />
+              <Route path="/collaboration" element={<ProtectedRoute element={<CollaborationPage />} />} />
+              <Route path="/offline-memories" element={<ProtectedRoute element={<OfflineMemoriesPage />} />} />
+              <Route path="/marketplace" element={<ProtectedRoute element={<MarketplacePage />} />} />
+              <Route path="/memory-spaces" element={<ProtectedRoute element={<MemorySpacesPage />} />} />
+              <Route path="/global-wall" element={<ProtectedRoute element={<GlobalWallPage />} />} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

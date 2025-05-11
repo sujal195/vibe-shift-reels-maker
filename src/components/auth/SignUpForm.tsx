@@ -44,7 +44,7 @@ export default function SignUpForm() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: signUpData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -79,8 +79,14 @@ export default function SignUpForm() {
         console.error('Failed to notify admin:', e);
       }
 
-      toast({ title: "Sign up successful!", description: "Please check your email to verify your account." });
-      navigate('/invitation-code');
+      // Automatically log in user after signup
+      if (signUpData.session) {
+        toast({ title: "Welcome to MEMORIA!", description: "Your account has been created successfully." });
+        navigate('/profile-setup'); // Direct to profile setup
+      } else {
+        toast({ title: "Sign up successful!", description: "Please check your email to verify your account." });
+        navigate('/auth'); 
+      }
     } catch (e) {
       console.error('Unexpected error during signup:', e);
       toast({ 
