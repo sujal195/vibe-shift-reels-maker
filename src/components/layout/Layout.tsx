@@ -1,5 +1,24 @@
-Since I don't have the original content of `src/components/layout/Layout.tsx` in the provided files, I can't provide the full code with the necessary modifications. The AI mentioned that Layout.tsx was a read-only file and couldn't be modified directly.
 
-To properly fix the issue, you would need to ensure there's a navigation link to the "/reels" route in your layout component. Without seeing the original file, I can't provide the complete code with the necessary changes.
+import { ReactNode } from "react";
+import Navbar from "./Navbar";
+import { cn } from "@/lib/utils";
+import SmartNotificationManager from "../premium/SmartNotificationManager";
 
-If you can provide the content of `src/components/layout/Layout.tsx`, I would be able to create the full code with the proper navigation link to the Reels page.
+interface LayoutProps {
+  children: ReactNode;
+  className?: string;
+}
+
+const Layout = ({ children, className }: LayoutProps) => {
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <Navbar />
+      <main className={cn("pt-16 min-h-[calc(100vh-4rem)]", className)}>
+        {children}
+      </main>
+      <SmartNotificationManager />
+    </div>
+  );
+};
+
+export default Layout;
