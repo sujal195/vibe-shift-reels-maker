@@ -1,5 +1,5 @@
 
-import { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, X, StopCircle } from "lucide-react";
 
@@ -83,7 +83,7 @@ const AudioRecorder = ({
   };
 
   // Clean up timer when component unmounts
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (timerRef.current) {
         window.clearInterval(timerRef.current);
