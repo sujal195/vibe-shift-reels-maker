@@ -1,3 +1,4 @@
+
 import Layout from "@/components/layout/Layout";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { Button } from "@/components/ui/button";
@@ -329,7 +330,7 @@ const MemorySpacesPage = () => {
                 <label className="text-sm font-medium">
                   Color
                 </label>
-                <ColorPicker value={newSpaceColor} onChange={setNewSpaceColor} />
+                <ColorPicker onColorChange={setNewSpaceColor} defaultColor={newSpaceColor} />
               </div>
             </div>
             <DialogFooter>
@@ -375,7 +376,7 @@ const MemorySpacesPage = () => {
                 <label className="text-sm font-medium">
                   Color
                 </label>
-                <ColorPicker value={newSpaceColor} onChange={setNewSpaceColor} />
+                <ColorPicker onColorChange={setNewSpaceColor} defaultColor={newSpaceColor} />
               </div>
             </div>
             <DialogFooter>
