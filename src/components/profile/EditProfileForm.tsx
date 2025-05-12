@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { supabase } from "@/integrations/supabase/client";
-import PhotoUploader from "@/components/post/create/PhotoUploader";
+import PhotoUploader from "@/components/photo/PhotoUploader";
+import { Loader2 } from "lucide-react";
 
 interface EditProfileFormProps {
   onSuccess: () => void;
@@ -26,6 +27,17 @@ const EditProfileForm = ({ onSuccess, initialData }: EditProfileFormProps) => {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initialData.avatar || null);
   const [coverPreview, setCoverPreview] = useState<string | null>(initialData.coverPhoto || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Initialize storage buckets
+  const ensureStorageBuckets = async () => {
+    try {
+      // Call the edge function to create storage buckets if they don't exist
+      const { error } = await supabase.functions.invoke('create-buckets');
+      if (error) throw error;
+    } catch (err) {
+      console.error("Failed to initialize storage:", err);
+    }
+  };
 
   const handleAvatarSelect = (_file: File, publicUrl: string) => {
     setAvatarPreview(publicUrl);
@@ -58,6 +70,9 @@ const EditProfileForm = ({ onSuccess, initialData }: EditProfileFormProps) => {
     setIsSubmitting(true);
 
     try {
+      // Ensure storage buckets exist before attempting update
+      await ensureStorageBuckets();
+      
       // Update profile in database
       const { error } = await supabase
         .from('profiles')
@@ -159,7 +174,12 @@ const EditProfileForm = ({ onSuccess, initialData }: EditProfileFormProps) => {
       
       <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting} className="bg-primary hover:bg-primary/90">
-          {isSubmitting ? "Saving..." : "Save Changes"}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : "Save Changes"}
         </Button>
       </div>
     </form>

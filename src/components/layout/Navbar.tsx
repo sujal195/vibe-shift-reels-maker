@@ -1,6 +1,6 @@
 
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Home, User, MessageCircle, Search, Video, Diamond, ContactIcon, Users } from "lucide-react";
+import { Bell, Home, User, MessageCircle, Search, Diamond, ContactIcon, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { toast } from "@/components/ui/use-toast";
 import usePremiumAccess from "@/hooks/usePremiumAccess";
+import BlueTickBadge from "@/components/BlueTickBadge";
+import { useVerifiedStatus } from "@/hooks/useVerifiedStatus";
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { user, signOut } = useAuthSession();
   const { isSubscribed, isTrial } = usePremiumAccess();
+  const { isVerified } = useVerifiedStatus(user?.id);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +78,7 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Right section - Search and Profile */}
+          {/* Right section - Search, Upgrade and Profile */}
           <div className="flex items-center">
             <form onSubmit={handleSearch} className="relative mr-2 md:mr-4">
               <Input
@@ -87,14 +90,27 @@ const Navbar = () => {
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </form>
+            
+            <Link to="/premium" className="mr-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="hidden sm:flex items-center border-primary text-primary hover:bg-primary/10"
+              >
+                <Diamond className="h-4 w-4 mr-2" /> 
+                Upgrade
+              </Button>
+            </Link>
+            
             {user ? (
-              <Link to="/profile">
+              <Link to="/profile" className="flex items-center">
                 <Avatar className="h-10 w-10 cursor-pointer">
                   <AvatarImage src={user.user_metadata?.avatar_url} />
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {user.user_metadata?.display_name?.charAt(0) || user.email?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
+                {isVerified && <BlueTickBadge className="ml-1" size="sm" />}
               </Link>
             ) : (
               <Link to="/auth">

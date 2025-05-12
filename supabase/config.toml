@@ -1,5 +1,8 @@
 
 project_id = "gfhcmeicnbccihtyclbj"
 
+[functions.create-buckets]
+verify_jwt = false
+
 [functions.notify-admin]
 verify_jwt = false

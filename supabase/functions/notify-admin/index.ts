@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,43 +16,75 @@ serve(async (req) => {
   }
 
   try {
-    const requestData = await req.json()
+    const requestData = await req.json();
+    const adminEmail = "sujalgiri574@gmail.com";
     
-    // Here you would normally send an email notification
-    // For now, we'll just log the data
-    console.log("Notification received:", requestData)
+    console.log("Notification received:", requestData);
 
-    let emailSubject = ""
-    let emailBody = ""
+    let emailSubject = "";
+    let emailBody = "";
     
     // Format email based on event type
     switch (requestData.type) {
       case 'signin':
-        emailSubject = "New Sign In"
-        emailBody = `User with email ${requestData.email} has signed in.`
-        break
+        emailSubject = "New Sign In";
+        emailBody = `User with email ${requestData.email} has signed in.`;
+        break;
       case 'signout':
-        emailSubject = "User Signed Out"
-        emailBody = `User with email ${requestData.email} has signed out.`
-        break
+        emailSubject = "User Signed Out";
+        emailBody = `User with email ${requestData.email} has signed out.`;
+        break;
       case 'post_created':
-        emailSubject = "New Post Created"
-        emailBody = `User ${requestData.user} created a new ${requestData.post?.mediaType || 'text'} post.`
-        break
+        emailSubject = "New Post Created";
+        emailBody = `User ${requestData.user} created a new ${requestData.post?.mediaType || 'text'} post.`;
+        break;
+      case 'profile_updated':
+        emailSubject = "Profile Updated";
+        emailBody = `User ${requestData.email} updated their profile.`;
+        break;
+      case 'invitation_used':
+        emailSubject = "Invitation Code Used";
+        emailBody = `User ${requestData.email} used an invitation code to join.`;
+        break;
       default:
-        emailSubject = "Notification"
-        emailBody = "A new event occurred in your application."
+        emailSubject = "Notification";
+        emailBody = "A new event occurred in your application.";
     }
     
-    // In a real implementation, you would send an email to sujalgiri574@gmail.com here
-    // For example using a service like SendGrid, Resend, etc.
+    // Send email via SMTP
+    try {
+      const client = new SMTPClient({
+        connection: {
+          hostname: Deno.env.get("SMTP_HOSTNAME") || "smtp.gmail.com",
+          port: Number(Deno.env.get("SMTP_PORT") || "587"),
+          tls: true,
+          auth: {
+            username: Deno.env.get("SMTP_USERNAME") || "",
+            password: Deno.env.get("SMTP_PASSWORD") || "",
+          },
+        },
+      });
+      
+      await client.send({
+        from: `Memoria <${Deno.env.get("SMTP_USERNAME") || "noreply@memoria.app"}>`,
+        to: adminEmail,
+        subject: emailSubject,
+        content: emailBody,
+      });
+      
+      await client.close();
+      console.log("Email sent to admin:", adminEmail);
+    } catch (emailError) {
+      console.error("Error sending email:", emailError);
+      // Continue and return success response even if email fails
+    }
     
     return new Response(
       JSON.stringify({
         message: "Notification logged successfully",
         emailSubject,
         emailBody,
-        recipient: "sujalgiri574@gmail.com"
+        recipient: adminEmail
       }),
       {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -59,7 +92,7 @@ serve(async (req) => {
       },
     )
   } catch (error) {
-    console.error("Error in notify-admin function:", error)
+    console.error("Error in notify-admin function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
@@ -68,4 +101,4 @@ serve(async (req) => {
       },
     )
   }
-})
+});
