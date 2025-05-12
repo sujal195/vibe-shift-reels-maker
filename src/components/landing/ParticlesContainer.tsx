@@ -2,7 +2,10 @@
 import { useCallback } from "react";
 import Particles from "react-tsparticles";
 import { loadSlim } from "tsparticles-slim";
-import type { Container, Engine } from "tsparticles-engine";
+
+// Remove the specific import of Engine and Container types from tsparticles-engine
+// and use more generic types instead
+type Engine = any;
 
 export const ParticlesContainer = () => {
   const particlesInit = useCallback(async (engine: Engine) => {

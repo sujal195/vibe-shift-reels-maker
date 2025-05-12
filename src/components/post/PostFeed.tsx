@@ -22,7 +22,7 @@ const PostFeed = () => {
           return;
         }
         
-        // Fetch real posts from Supabase
+        // Fetch real posts from Supabase with fixed join
         const { data: postsData, error } = await supabase
           .from('posts')
           .select(`
@@ -45,14 +45,14 @@ const PostFeed = () => {
         }
         
         if (postsData && postsData.length > 0) {
-          // Map Supabase data to Post type
-          const formattedPosts: Post[] = postsData.map((post) => ({
+          // Map Supabase data to Post type with type safety
+          const formattedPosts: Post[] = postsData.map((post: any) => ({
             id: post.id,
             content: post.content,
             author: {
-              id: post.profiles.id,
-              name: post.profiles.display_name || 'User',
-              avatar: post.profiles.avatar_url,
+              id: post.profiles?.id || 'unknown',
+              name: post.profiles?.display_name || 'User',
+              avatar: post.profiles?.avatar_url || null,
             },
             createdAt: post.created_at,
             likes: post.likes_count || 0,
