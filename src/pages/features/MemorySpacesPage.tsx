@@ -1,4 +1,3 @@
-
 import Layout from "@/components/layout/Layout";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ColorPicker } from "../features/components/ColorPicker";
+import { ColorPicker } from "./components/ColorPicker";
 import { Badge } from "@/components/ui/badge";
 
 // Memory space colors

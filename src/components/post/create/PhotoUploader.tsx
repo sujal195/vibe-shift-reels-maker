@@ -26,11 +26,7 @@ const PhotoUploader = ({
   const [isUploading, setIsUploading] = useState(false);
 
   // Determine the target bucket based on uploadType
-  const bucket = uploadType === "cover"
-    ? "covers"
-    : uploadType === "profile"
-    ? "avatars"
-    : "avatars"; // default to avatars for posts as well for now
+  const bucket = "media";
 
   const handlePhotoClick = () => {
     fileInputRef.current?.click();
@@ -49,6 +45,21 @@ const PhotoUploader = ({
             : uploadType === "profile"
             ? `profile-pictures/${fileName}`
             : `post-pictures/${fileName}`;
+
+        // Check if bucket exists, if not show proper message
+        const { data: bucketExists } = await supabase
+          .storage
+          .getBucket(bucket);
+          
+        if (!bucketExists) {
+          toast({
+            title: "Storage not configured",
+            description: "Storage buckets are not set up properly. Please contact support.",
+            variant: "destructive"
+          });
+          setIsUploading(false);
+          return;
+        }
 
         const { error: uploadError } = await supabase
           .storage
@@ -74,7 +85,7 @@ const PhotoUploader = ({
       } catch (error) {
         toast({
           title: "Upload Error",
-          description: "An unexpected error occurred",
+          description: "An unexpected error occurred during upload. Storage might not be configured.",
           variant: "destructive"
         });
       }
@@ -110,7 +121,7 @@ const PhotoUploader = ({
           <img 
             src={photoPreview} 
             alt="Upload preview" 
-            className="w-full rounded-md max-h-72 object-contain bg-secondary" 
+            className="w-full rounded-md max-h-72 object-contain bg-zinc-900" 
           />
           <Button 
             variant="secondary" 

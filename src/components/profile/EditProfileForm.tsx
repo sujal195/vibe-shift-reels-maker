@@ -72,12 +72,16 @@ const EditProfileForm = ({ onSuccess, initialData }: EditProfileFormProps) => {
           onConflict: 'id'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating profile:", error);
+        throw error;
+      }
 
-      // Update user metadata if needed
+      // Update user metadata
       const { error: userUpdateError } = await supabase.auth.updateUser({
         data: {
           display_name: name,
+          avatar_url: avatarPreview
         }
       });
 
@@ -86,6 +90,11 @@ const EditProfileForm = ({ onSuccess, initialData }: EditProfileFormProps) => {
         // Continue anyway as this is not critical
       }
 
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+      
       onSuccess();
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -102,29 +111,30 @@ const EditProfileForm = ({ onSuccess, initialData }: EditProfileFormProps) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="name">Name</Label>
+        <Label htmlFor="name" className="text-white">Name</Label>
         <Input 
           id="name" 
           value={name} 
           onChange={(e) => setName(e.target.value)}
           required
+          className="bg-zinc-900 border-zinc-800"
         />
       </div>
       
       <div>
-        <Label htmlFor="bio">Bio</Label>
+        <Label htmlFor="bio" className="text-white">Bio</Label>
         <Textarea 
           id="bio" 
           value={bio} 
           onChange={(e) => setBio(e.target.value)} 
           placeholder="Tell us about yourself"
-          className="resize-none"
+          className="resize-none bg-zinc-900 border-zinc-800"
           rows={3}
         />
       </div>
       
       <div>
-        <Label>Profile Picture</Label>
+        <Label className="text-white">Profile Picture</Label>
         <div className="mt-2">
           <PhotoUploader
             photoPreview={avatarPreview}
@@ -136,7 +146,7 @@ const EditProfileForm = ({ onSuccess, initialData }: EditProfileFormProps) => {
       </div>
       
       <div>
-        <Label>Cover Photo</Label>
+        <Label className="text-white">Cover Photo</Label>
         <div className="mt-2">
           <PhotoUploader
             photoPreview={coverPreview}
@@ -148,7 +158,7 @@ const EditProfileForm = ({ onSuccess, initialData }: EditProfileFormProps) => {
       </div>
       
       <div className="flex justify-end">
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} className="bg-primary hover:bg-primary/90">
           {isSubmitting ? "Saving..." : "Save Changes"}
         </Button>
       </div>

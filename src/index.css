@@ -1,46 +1,47 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 230 14% 10%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
 
-    --card: 230 14% 13%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 230 14% 13%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 98%;
 
     --primary: 252 95% 70%;
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 233 13% 22%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 233 13% 18%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 0% 13%;
+    --muted-foreground: 0 0% 65%;
 
     --accent: 252 95% 70%;
-    --accent-foreground: 210 40% 98%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 233 13% 18%;
-    --input: 233 13% 18%;
+    --border: 0 0% 13%;
+    --input: 0 0% 13%;
     --ring: 252 95% 70%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 230 14% 10%;
-    --sidebar-foreground: 210 40% 98%;
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 252 95% 70%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 230 14% 15%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 233 13% 18%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 13%;
     --sidebar-ring: 252 95% 70%;
   }
 }
@@ -51,7 +52,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-black text-foreground;
   }
 
   html {
@@ -60,7 +61,7 @@
 
   /* Special styles for our app */
   .glass-card {
-    @apply bg-card/70 backdrop-blur-md border border-border;
+    @apply bg-zinc-900/70 backdrop-blur-md border border-zinc-800;
   }
 
   .hover-scale {

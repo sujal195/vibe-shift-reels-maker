@@ -40,7 +40,7 @@ const LandingPage = () => {
         <Link
           to="/auth"
           className="animate-on-mount opacity-0 inline-block px-8 py-4 text-lg font-semibold text-white 
-            rounded-full bg-gradient-to-r from-[#9A67EA] to-[#FF5CA8] 
+            rounded-full bg-gradient-to-r from-primary to-violet-500 
             hover:scale-105 transition-all duration-300 
             shadow-[0_0_20px_rgba(154,103,234,0.5)] 
             animate-float"
@@ -50,7 +50,7 @@ const LandingPage = () => {
       </div>
 
       {/* Background Glow Effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#9A67EA]/20 to-[#FF5CA8]/20 animate-pulse-slow" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-violet-500/10 animate-pulse-slow" />
     </div>
   );
 };
