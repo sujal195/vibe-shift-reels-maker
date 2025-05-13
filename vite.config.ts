@@ -4,6 +4,17 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";
+import { execSync } from "child_process";
+
+// Update browserslist database before production builds
+if (process.env.NODE_ENV === 'production') {
+  try {
+    console.log('Updating browserslist database...');
+    execSync('npx update-browserslist-db@latest', { stdio: 'inherit' });
+  } catch (error) {
+    console.error('Failed to update browserslist database:', error);
+  }
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
