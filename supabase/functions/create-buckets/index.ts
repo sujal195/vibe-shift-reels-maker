@@ -21,18 +21,18 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Check if bucket exists, create if not
+    // Define buckets to create
+    const requiredBuckets = ['media', 'avatars', 'profiles', 'posts'];
+    const results = [];
+    
+    // Check if buckets exist, create if not
     const { data: buckets, error: bucketsError } = await supabaseAdmin
       .storage
       .listBuckets();
 
     if (bucketsError) throw bucketsError;
-
-    // Define buckets to create
-    const requiredBuckets = ['media', 'avatars'];
-    const existingBuckets = buckets.map(bucket => bucket.name);
     
-    const results = [];
+    const existingBuckets = buckets.map(bucket => bucket.name);
     
     for (const bucketName of requiredBuckets) {
       if (!existingBuckets.includes(bucketName)) {
@@ -44,15 +44,27 @@ serve(async (req) => {
         
         if (error) throw error;
         
-        // Create a policy that allows public reading of files
+        // Create a policy that allows authenticated users to upload files
         const { error: policyError } = await supabaseAdmin
           .storage
           .from(bucketName)
-          .createSignedUrl('test.txt', 60);
+          .createSignedUploadUrl('test.txt');
           
+        if (policyError) console.error(`Policy error for ${bucketName}:`, policyError);
+        
         results.push(`Created bucket: ${bucketName}`);
       } else {
         results.push(`Bucket already exists: ${bucketName}`);
+        
+        // Update bucket to be public
+        try {
+          await supabaseAdmin.storage.updateBucket(bucketName, {
+            public: true
+          });
+          results.push(`Updated ${bucketName} to be public`);
+        } catch (err) {
+          console.error(`Error updating ${bucketName}:`, err);
+        }
       }
     }
 

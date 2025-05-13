@@ -13,7 +13,6 @@ import MessagesPage from "./pages/MessagesPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
-import InvitationCodePage from "./pages/InvitationCodePage";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
 import ContactPage from "./pages/ContactPage";
 import PremiumPage from "./pages/PremiumPage";
@@ -30,9 +29,8 @@ import OfflineMemoriesPage from "./pages/features/OfflineMemoriesPage";
 import MarketplacePage from "./pages/features/MarketplacePage";
 import MemorySpacesPage from "./pages/features/MemorySpacesPage";
 import GlobalWallPage from "./pages/features/GlobalWallPage";
-import IconsPage from "./pages/IconsPage";
-import SocialFeaturesPage from "./pages/SocialFeaturesPage";
 import { useState } from "react";
+import CoinsPage from "./pages/CoinsPage";
 
 const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
   const { user, isLoading } = useAuthSession();
@@ -92,7 +90,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<AuthenticatedRedirect element={<LandingPage />} />} />
                 <Route path="/auth" element={<AuthenticatedRedirect element={<AuthPage />} />} />
-                <Route path="/invitation-code" element={<ProtectedRoute element={<InvitationCodePage />} />} />
+                {/* Removed invitation-code route */}
                 <Route path="/profile-setup" element={<ProtectedRoute element={<ProfileSetupPage />} />} />
                 <Route path="/home" element={<ProtectedRoute element={<Index />} />} />
                 <Route path="/friends" element={<ProtectedRoute element={<FriendsPage />} />} />
@@ -104,8 +102,7 @@ const App = () => {
                 <Route path="/premium" element={<ProtectedRoute element={<PremiumPage />} />} />
                 <Route path="/premium-features" element={<ProtectedRoute element={<PremiumFeaturesPage />} />} />
                 <Route path="/reels" element={<ProtectedRoute element={<ReelsPage />} />} />
-                <Route path="/icons" element={<ProtectedRoute element={<IconsPage />} />} />
-                <Route path="/social-features" element={<ProtectedRoute element={<SocialFeaturesPage />} />} />
+                <Route path="/coins" element={<ProtectedRoute element={<CoinsPage />} />} />
                 
                 {/* Feature pages */}
                 <Route path="/memory-vault" element={<ProtectedRoute element={<MemoryVaultPage />} />} />

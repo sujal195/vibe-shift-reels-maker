@@ -1,5 +1,5 @@
 
-import { Home, Users, Bell, MessageCircle, User, Film, Sparkles } from "lucide-react";
+import { Home, Users, Bell, Film, User, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +33,15 @@ const BottomNav = () => {
           <Users size={24} />
         </Link>
         <Link 
+          to="/notifications" 
+          className={cn(
+            "flex flex-col items-center", 
+            isActive("/notifications") ? "text-primary" : "text-foreground"
+          )}
+        >
+          <Bell size={24} />
+        </Link>
+        <Link 
           to="/reels" 
           className={cn(
             "flex flex-col items-center", 
@@ -40,15 +49,6 @@ const BottomNav = () => {
           )}
         >
           <Film size={24} />
-        </Link>
-        <Link 
-          to="/social-features" 
-          className={cn(
-            "flex flex-col items-center", 
-            isActive("/social-features") ? "text-primary" : "text-foreground"
-          )}
-        >
-          <Sparkles size={24} />
         </Link>
         <Link 
           to="/profile" 

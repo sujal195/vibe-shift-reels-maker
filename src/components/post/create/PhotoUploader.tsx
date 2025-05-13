@@ -38,7 +38,11 @@ const PhotoUploader = ({
   }, [photoPreview]);
 
   // Determine the target bucket based on uploadType
-  const bucket = "media";
+  const getBucket = () => {
+    if (uploadType === 'profile') return 'avatars';
+    if (uploadType === 'cover') return 'profiles';
+    return 'media';
+  };
 
   const handlePhotoClick = () => {
     fileInputRef.current?.click();
@@ -121,6 +125,7 @@ const PhotoUploader = ({
         
         const fileExt = optimizedFile.name.split('.').pop();
         const fileName = `${user.id}-${uploadType}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+        const bucket = getBucket();
         const filePath =
           uploadType === "cover"
             ? `cover-pictures/${fileName}`
@@ -128,20 +133,8 @@ const PhotoUploader = ({
             ? `profile-pictures/${fileName}`
             : `post-pictures/${fileName}`;
 
-        // Check if bucket exists, if not show proper message
-        const { data: bucketExists } = await supabase
-          .storage
-          .getBucket(bucket);
-          
-        if (!bucketExists) {
-          toast({
-            title: "Storage not configured",
-            description: "Storage buckets are not set up properly. Please contact support.",
-            variant: "destructive"
-          });
-          setIsUploading(false);
-          return;
-        }
+        // Initialize buckets if needed
+        await ensureStorageBuckets();
 
         const { error: uploadError } = await supabase
           .storage
@@ -176,6 +169,17 @@ const PhotoUploader = ({
         });
       }
       setIsUploading(false);
+    }
+  };
+
+  // Ensure storage buckets are initialized
+  const ensureStorageBuckets = async () => {
+    try {
+      // Call the edge function to create storage buckets if they don't exist
+      const { error } = await supabase.functions.invoke('create-buckets');
+      if (error) throw error;
+    } catch (err) {
+      console.error("Failed to initialize storage:", err);
     }
   };
 

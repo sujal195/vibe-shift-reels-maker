@@ -1,16 +1,15 @@
+
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Edit, Image } from "lucide-react";
+import { Image } from "lucide-react";
 import PostCard, { Post } from "@/components/post/PostCard";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import EditProfileForm from "@/components/profile/EditProfileForm";
+import { Button } from "@/components/ui/button";
 import { fetchUserPosts, fetchUserProfile, countUserPosts } from "@/utils/supabaseUtils";
 
 const ProfilePage = () => {
@@ -27,7 +26,6 @@ const ProfilePage = () => {
   
   const { user, isLoading } = useAuthSession();
   const navigate = useNavigate();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -89,14 +87,8 @@ const ProfilePage = () => {
     setPosts(formattedPosts);
   };
 
-  const handleProfileUpdate = () => {
-    fetchProfileData();
-    fetchUserPostsData();
-    setIsEditDialogOpen(false);
-    toast({
-      title: "Profile Updated",
-      description: "Your profile has been successfully updated.",
-    });
+  const handleNavigateToSettings = () => {
+    navigate('/settings');
   };
 
   // For rendering different media types in tabs
@@ -111,27 +103,15 @@ const ProfilePage = () => {
           className="h-48 rounded-lg relative bg-gradient-to-r from-violet-500 to-purple-500"
           style={profileData.coverPhoto ? { backgroundImage: `url(${profileData.coverPhoto})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
         >
-          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="absolute bottom-3 right-3"
-              >
-                <Image className="h-4 w-4 mr-2" />
-                Change Cover
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Edit Profile</DialogTitle>
-              </DialogHeader>
-              <EditProfileForm 
-                onSuccess={handleProfileUpdate} 
-                initialData={profileData}
-              />
-            </DialogContent>
-          </Dialog>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="absolute bottom-3 right-3"
+            onClick={handleNavigateToSettings}
+          >
+            <Image className="h-4 w-4 mr-2" />
+            Change Cover
+          </Button>
         </div>
         
         {/* Profile Info */}
@@ -155,16 +135,6 @@ const ProfilePage = () => {
                 </div>
               </div>
             </div>
-          </div>
-          <div className="mt-4 md:mt-0">
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Profile
-                </Button>
-              </DialogTrigger>
-            </Dialog>
           </div>
         </div>
 

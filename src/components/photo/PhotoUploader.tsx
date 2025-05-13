@@ -1,10 +1,12 @@
-import { useRef, useState } from "react";
+
+import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { LazyImage } from "@/components/ui/lazy-image";
+import { getImageDimensions } from "@/utils/imageUtils";
 
 interface PhotoUploaderProps {
   photoPreview: string | null;
@@ -24,23 +26,93 @@ const PhotoUploader = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthSession();
   const [isUploading, setIsUploading] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
 
-  // Determine the target bucket and folder based on uploadType
-  const getBucketDetails = () => {
-    if (uploadType === 'profile' || uploadType === 'cover') {
-      return {
-        bucket: "avatars",
-        folder: uploadType === 'profile' ? 'profile-pictures' : 'cover-pictures'
-      };
+  // Load image dimensions to prevent CLS
+  useEffect(() => {
+    if (photoPreview) {
+      getImageDimensions(photoPreview).then(dimensions => {
+        setImageDimensions(dimensions);
+      });
     }
-    return {
-      bucket: "media",
-      folder: 'post-pictures'
-    };
+  }, [photoPreview]);
+
+  // Determine the target bucket based on uploadType
+  const getBucket = () => {
+    if (uploadType === 'profile') return 'avatars';
+    if (uploadType === 'cover') return 'profiles';
+    return 'media';
   };
 
   const handlePhotoClick = () => {
     fileInputRef.current?.click();
+  };
+
+  // Function to compress and optimize image before upload
+  const optimizeImage = async (file: File): Promise<File> => {
+    // For small files (< 300KB), don't bother compressing
+    if (file.size < 300 * 1024) {
+      return file;
+    }
+    
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        
+        img.onload = () => {
+          // Determine target size based on image dimensions
+          const MAX_WIDTH = 1200; // Max width for any image
+          const MAX_HEIGHT = 1200; // Max height for any image
+          
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > MAX_WIDTH) {
+            height = (height * MAX_WIDTH) / width;
+            width = MAX_WIDTH;
+          }
+          
+          if (height > MAX_HEIGHT) {
+            width = (width * MAX_HEIGHT) / height;
+            height = MAX_HEIGHT;
+          }
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Try to use WebP if possible for better compression
+          let format = 'image/webp';
+          let quality = 0.85;
+          
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve(file); // Fallback to original if compression fails
+                return;
+              }
+              
+              // Create a new file from the compressed blob
+              const compressedFile = new File(
+                [blob],
+                file.name.replace(/\.(png|jpg|jpeg)$/i, '.webp'),
+                { type: format }
+              );
+              
+              resolve(compressedFile);
+            },
+            format,
+            quality
+          );
+        };
+      };
+    });
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,37 +120,51 @@ const PhotoUploader = ({
     if (file && user) {
       setIsUploading(true);
       try {
-        const fileExt = file.name.split('.').pop();
+        // Optimize the image before upload
+        const optimizedFile = await optimizeImage(file);
+        
+        const fileExt = optimizedFile.name.split('.').pop();
         const fileName = `${user.id}-${uploadType}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-        const { bucket, folder } = getBucketDetails();
-        const filePath = `${folder}/${fileName}`;
+        const bucket = getBucket();
+        const filePath =
+          uploadType === "cover"
+            ? `cover-pictures/${fileName}`
+            : uploadType === "profile"
+            ? `profile-pictures/${fileName}`
+            : `post-pictures/${fileName}`;
 
-        // Check if storage services are initialized first
+        // Initialize buckets if needed
         await ensureStorageBuckets();
 
-        // Upload file to storage
         const { error: uploadError } = await supabase
           .storage
           .from(bucket)
-          .upload(filePath, file);
+          .upload(filePath, optimizedFile);
 
         if (uploadError) {
-          console.error("Upload error:", uploadError);
-          throw new Error(uploadError.message);
+          toast({
+            title: "Upload Failed",
+            description: uploadError.message,
+            variant: "destructive"
+          });
+          setIsUploading(false);
+          return;
         }
 
-        // Get the public URL of the uploaded file
         const { data } = supabase
           .storage
           .from(bucket)
           .getPublicUrl(filePath);
 
-        onPhotoSelect(file, data.publicUrl);
+        // Get dimensions for the uploaded image to prevent CLS
+        const dimensions = await getImageDimensions(data.publicUrl);
+        setImageDimensions(dimensions);
+        
+        onPhotoSelect(optimizedFile, data.publicUrl);
       } catch (error) {
-        console.error("Upload error:", error);
         toast({
           title: "Upload Error",
-          description: "Failed to upload image. Please try again later.",
+          description: "An unexpected error occurred during upload. Storage might not be configured.",
           variant: "destructive"
         });
       }
@@ -125,7 +211,10 @@ const PhotoUploader = ({
           <LazyImage 
             src={photoPreview} 
             alt="Upload preview" 
-            className="w-full rounded-md max-h-72 object-contain bg-zinc-900" 
+            className="w-full rounded-md max-h-72 object-contain bg-zinc-900"
+            width={imageDimensions.width}
+            height={imageDimensions.height}
+            priority={true} // This is above the fold, don't lazy load
           />
           <Button 
             variant="secondary" 
