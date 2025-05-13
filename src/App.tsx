@@ -30,6 +30,8 @@ import OfflineMemoriesPage from "./pages/features/OfflineMemoriesPage";
 import MarketplacePage from "./pages/features/MarketplacePage";
 import MemorySpacesPage from "./pages/features/MemorySpacesPage";
 import GlobalWallPage from "./pages/features/GlobalWallPage";
+import IconsPage from "./pages/IconsPage";
+import SocialFeaturesPage from "./pages/SocialFeaturesPage";
 import { useState } from "react";
 
 const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
@@ -102,6 +104,8 @@ const App = () => {
                 <Route path="/premium" element={<ProtectedRoute element={<PremiumPage />} />} />
                 <Route path="/premium-features" element={<ProtectedRoute element={<PremiumFeaturesPage />} />} />
                 <Route path="/reels" element={<ProtectedRoute element={<ReelsPage />} />} />
+                <Route path="/icons" element={<ProtectedRoute element={<IconsPage />} />} />
+                <Route path="/social-features" element={<ProtectedRoute element={<SocialFeaturesPage />} />} />
                 
                 {/* Feature pages */}
                 <Route path="/memory-vault" element={<ProtectedRoute element={<MemoryVaultPage />} />} />

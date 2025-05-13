@@ -1,6 +1,6 @@
 
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Home, User, MessageCircle, Search, Diamond, ContactIcon, Users } from "lucide-react";
+import { Bell, Home, User, MessageCircle, Search, Diamond, ContactIcon, Users, Film, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -71,6 +71,12 @@ const Navbar = () => {
             </Link>
             <Link to="/notifications" className="text-foreground hover:text-primary hover:bg-secondary p-3 rounded-lg">
               <Bell className="h-6 w-6" />
+            </Link>
+            <Link to="/reels" className="text-foreground hover:text-primary hover:bg-secondary p-3 rounded-lg">
+              <Film className="h-6 w-6" />
+            </Link>
+            <Link to="/social-features" className="text-foreground hover:text-primary hover:bg-secondary p-3 rounded-lg">
+              <Sparkles className="h-6 w-6" />
             </Link>
             <Link to="/premium" className="text-primary hover:text-primary/90 hover:bg-secondary p-3 rounded-lg relative">
               <Diamond className="h-6 w-6" />
