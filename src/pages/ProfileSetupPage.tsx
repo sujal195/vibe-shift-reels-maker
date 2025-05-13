@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "@/components/ui/use-toast";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { User, Image, Upload } from "lucide-react";
+import { LazyImage } from "@/components/ui/lazy-image";
 
 type ProfileSetupValues = {
   firstName: string;
@@ -420,7 +421,7 @@ const ProfileSetupPage = () => {
             <div className="flex flex-col items-center space-y-6">
               <div className="w-32 h-32 rounded-full bg-secondary flex items-center justify-center overflow-hidden border-2 border-border">
                 {profilePicturePreview ? (
-                  <img 
+                  <LazyImage 
                     src={profilePicturePreview} 
                     alt="Profile Preview" 
                     className="w-full h-full object-cover"

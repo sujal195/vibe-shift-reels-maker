@@ -1,0 +1,17 @@
+
+{
+  "name": "Memoria - Preserve Your Memories",
+  "short_name": "Memoria",
+  "description": "A social platform to capture, store, and share your special moments",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}

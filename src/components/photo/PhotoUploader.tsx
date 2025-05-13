@@ -1,10 +1,10 @@
-
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { LazyImage } from "@/components/ui/lazy-image";
 
 interface PhotoUploaderProps {
   photoPreview: string | null;
@@ -122,7 +122,7 @@ const PhotoUploader = ({
 
       {photoPreview && (
         <div className="relative mb-4">
-          <img 
+          <LazyImage 
             src={photoPreview} 
             alt="Upload preview" 
             className="w-full rounded-md max-h-72 object-contain bg-zinc-900" 
