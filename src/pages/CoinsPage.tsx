@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coin, Trophy, Users, Clock, ArrowUpRight } from "lucide-react";
+import { Coins, Trophy, Users, Clock, ArrowUpRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/components/ui/use-toast";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -135,7 +134,7 @@ const CoinsPage = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-primary">Coin Center</h1>
           <div className="flex items-center bg-secondary/50 px-4 py-2 rounded-full">
-            <Coin className="h-5 w-5 text-amber-400 mr-2" />
+            <Coins className="h-5 w-5 text-amber-400 mr-2" />
             <span className="font-semibold text-xl">{userCoins.toLocaleString()}</span>
           </div>
         </div>
@@ -151,7 +150,7 @@ const CoinsPage = () => {
             <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Coin className="h-6 w-6 text-amber-400 mr-2" />
+                  <Coins className="h-6 w-6 text-amber-400 mr-2" />
                   Your Coin Wallet
                 </CardTitle>
                 <CardDescription>
@@ -290,7 +289,7 @@ const CoinsPage = () => {
                       <span className="font-medium">{user.username}</span>
                     </div>
                     <div className="flex items-center">
-                      <Coin className="h-4 w-4 text-amber-400 mr-1" />
+                      <Coins className="h-4 w-4 text-amber-400 mr-1" />
                       <span>{user.coins.toLocaleString()}</span>
                     </div>
                   </div>
@@ -330,7 +329,7 @@ const CoinsPage = () => {
                       <span className="font-medium">{user.username}</span>
                     </div>
                     <div className="flex items-center">
-                      <Coin className="h-4 w-4 text-amber-400 mr-1" />
+                      <Coins className="h-4 w-4 text-amber-400 mr-1" />
                       <span>{user.coins.toLocaleString()}</span>
                     </div>
                   </div>
@@ -352,7 +351,7 @@ const CoinsPage = () => {
                     <CardTitle className="text-lg flex items-center justify-between">
                       <span>{achievement.title}</span>
                       <span className="text-sm font-normal flex items-center">
-                        <Coin className="h-4 w-4 text-amber-400 mr-1" />
+                        <Coins className="h-4 w-4 text-amber-400 mr-1" />
                         {achievement.reward}
                       </span>
                     </CardTitle>
@@ -402,7 +401,7 @@ const CoinsPage = () => {
             className="h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600"
             onClick={() => setIsFloatingMenuOpen(!isFloatingMenuOpen)}
           >
-            <Coin className="h-6 w-6 text-background" />
+            <Coins className="h-6 w-6 text-background" />
           </Button>
         </div>
       </div>
