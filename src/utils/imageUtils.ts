@@ -18,25 +18,85 @@ export const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event
 
 /**
  * Optimized image component that handles errors and lazy loading
+ * Uses WebP format when available
  */
 export const getOptimizedImageUrl = (url: string | null | undefined): string => {
   if (!url) return optimizedPlaceholder;
   
-  // If URL is from Supabase storage, we can pass it through as is
+  // If URL is from Supabase storage, we can optimize via parameters
   if (url.includes('supabase.co/storage/v1/object/public')) {
+    // Add WebP conversion parameters if supported
+    try {
+      // Test for WebP support
+      if (window.navigator && window.navigator.userAgent) {
+        const isWebPSupported = 
+          window.navigator.userAgent.indexOf('Chrome') >= 0 || 
+          window.navigator.userAgent.indexOf('Firefox') >= 0 ||
+          window.navigator.userAgent.indexOf('Edge') >= 0;
+          
+        if (isWebPSupported) {
+          // Add WebP conversion parameter if URL doesn't have parameters already
+          if (!url.includes('?')) {
+            return `${url}?format=webp&quality=80`;
+          }
+        }
+      }
+    } catch (e) {
+      // Fallback silently if we can't detect WebP support
+    }
     return url;
   }
   
-  // For external images, we could add a proxy here if needed
   return url;
 };
 
 /**
- * Convert image to WebP format if supported
- * Note: This is a simple implementation, actual conversion would require server support
+ * Preload critical images to improve LCP (Largest Contentful Paint)
+ * @param urls Array of image URLs to preload
  */
-export const convertToWebP = (url: string): string => {
-  // In a real implementation, this would call a server endpoint to convert
-  // For now, we just return the original URL
-  return url;
+export const preloadCriticalImages = (urls: string[]): void => {
+  if (typeof document === 'undefined') return;
+  
+  urls.forEach(url => {
+    if (!url) return;
+    
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = getOptimizedImageUrl(url);
+    document.head.appendChild(link);
+  });
+};
+
+/**
+ * Get image dimensions to prevent CLS (Cumulative Layout Shift)
+ * @param url Image URL
+ * @param defaultWidth Default width if cannot be determined
+ * @param defaultHeight Default height if cannot be determined
+ */
+export const getImageDimensions = async (
+  url: string,
+  defaultWidth = 300,
+  defaultHeight = 200
+): Promise<{width: number, height: number}> => {
+  return new Promise((resolve) => {
+    if (!url) {
+      resolve({width: defaultWidth, height: defaultHeight});
+      return;
+    }
+    
+    const img = new Image();
+    img.onload = () => {
+      resolve({
+        width: img.naturalWidth || defaultWidth,
+        height: img.naturalHeight || defaultHeight
+      });
+    };
+    
+    img.onerror = () => {
+      resolve({width: defaultWidth, height: defaultHeight});
+    };
+    
+    img.src = url;
+  });
 };

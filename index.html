@@ -8,6 +8,11 @@
     <meta name="description" content="Build a scrollable, interactive timeline of your life—moments, feelings, people, locations, everything" />
     <meta name="author" content="Sujal Giri" />
 
+    <!-- Preload critical assets -->
+    <link rel="preload" href="/src/assets/optimized-placeholder.svg" as="image" type="image/svg+xml" />
+    <link rel="preload" href="/src/index.css" as="style" />
+    
+    <!-- SEO & Social Meta Tags -->
     <meta property="og:title" content="MEMORIA - Your Life as a Living Timeline" />
     <meta property="og:description" content="Build a scrollable, interactive timeline of your life—moments, feelings, people, locations, everything" />
     <meta property="og:type" content="website" />
@@ -17,10 +22,14 @@
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
     
-    <!-- Google Fonts -->
+    <!-- PWA Support -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#3b82f6" />
+    
+    <!-- Font Display Optimization -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap">
     
-    <!-- Google AdSense Script -->
+    <!-- Google AdSense Script with async loading -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2814512137707152" crossorigin="anonymous"></script>
   </head>
 
@@ -31,4 +40,3 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

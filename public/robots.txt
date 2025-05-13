@@ -1,3 +1,9 @@
+
+# Allow all user agents
+User-agent: *
+Allow: /
+
+# Specific allowances for major crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +16,9 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# Sitemap location (add this once you have a sitemap generated)
+# Sitemap: https://memoria.app/sitemap.xml
+
+# Add any paths you want to exclude from crawling below
+# Disallow: /api/
+# Disallow: /admin/
