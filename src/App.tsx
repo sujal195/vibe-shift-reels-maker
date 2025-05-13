@@ -30,8 +30,7 @@ import OfflineMemoriesPage from "./pages/features/OfflineMemoriesPage";
 import MarketplacePage from "./pages/features/MarketplacePage";
 import MemorySpacesPage from "./pages/features/MemorySpacesPage";
 import GlobalWallPage from "./pages/features/GlobalWallPage";
-
-const queryClient = new QueryClient();
+import { useState } from "react";
 
 const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
   const { user, isLoading } = useAuthSession();
@@ -69,48 +68,60 @@ const AuthenticatedRedirect = ({ element }: { element: JSX.Element }) => {
   return element;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="dark">
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<AuthenticatedRedirect element={<LandingPage />} />} />
-              <Route path="/auth" element={<AuthenticatedRedirect element={<AuthPage />} />} />
-              <Route path="/invitation-code" element={<ProtectedRoute element={<InvitationCodePage />} />} />
-              <Route path="/profile-setup" element={<ProtectedRoute element={<ProfileSetupPage />} />} />
-              <Route path="/home" element={<ProtectedRoute element={<Index />} />} />
-              <Route path="/friends" element={<ProtectedRoute element={<FriendsPage />} />} />
-              <Route path="/notifications" element={<ProtectedRoute element={<NotificationsPage />} />} />
-              <Route path="/messages" element={<ProtectedRoute element={<MessagesPage />} />} />
-              <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
-              <Route path="/settings" element={<ProtectedRoute element={<SettingsPage />} />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/premium" element={<ProtectedRoute element={<PremiumPage />} />} />
-              <Route path="/premium-features" element={<ProtectedRoute element={<PremiumFeaturesPage />} />} />
-              <Route path="/reels" element={<ProtectedRoute element={<ReelsPage />} />} />
-              
-              {/* Feature pages */}
-              <Route path="/memory-vault" element={<ProtectedRoute element={<MemoryVaultPage />} />} />
-              <Route path="/emotion-timeline" element={<ProtectedRoute element={<EmotionTimelinePage />} />} />
-              <Route path="/private-legacy" element={<ProtectedRoute element={<PrivateLegacyModePage />} />} />
-              <Route path="/deep-messaging" element={<ProtectedRoute element={<DeepMessagingPage />} />} />
-              <Route path="/collaboration" element={<ProtectedRoute element={<CollaborationPage />} />} />
-              <Route path="/offline-memories" element={<ProtectedRoute element={<OfflineMemoriesPage />} />} />
-              <Route path="/marketplace" element={<ProtectedRoute element={<MarketplacePage />} />} />
-              <Route path="/memory-spaces" element={<ProtectedRoute element={<MemorySpacesPage />} />} />
-              <Route path="/global-wall" element={<ProtectedRoute element={<GlobalWallPage />} />} />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Create a new QueryClient instance for each component render
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }));
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="dark">
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<AuthenticatedRedirect element={<LandingPage />} />} />
+                <Route path="/auth" element={<AuthenticatedRedirect element={<AuthPage />} />} />
+                <Route path="/invitation-code" element={<ProtectedRoute element={<InvitationCodePage />} />} />
+                <Route path="/profile-setup" element={<ProtectedRoute element={<ProfileSetupPage />} />} />
+                <Route path="/home" element={<ProtectedRoute element={<Index />} />} />
+                <Route path="/friends" element={<ProtectedRoute element={<FriendsPage />} />} />
+                <Route path="/notifications" element={<ProtectedRoute element={<NotificationsPage />} />} />
+                <Route path="/messages" element={<ProtectedRoute element={<MessagesPage />} />} />
+                <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
+                <Route path="/settings" element={<ProtectedRoute element={<SettingsPage />} />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/premium" element={<ProtectedRoute element={<PremiumPage />} />} />
+                <Route path="/premium-features" element={<ProtectedRoute element={<PremiumFeaturesPage />} />} />
+                <Route path="/reels" element={<ProtectedRoute element={<ReelsPage />} />} />
+                
+                {/* Feature pages */}
+                <Route path="/memory-vault" element={<ProtectedRoute element={<MemoryVaultPage />} />} />
+                <Route path="/emotion-timeline" element={<ProtectedRoute element={<EmotionTimelinePage />} />} />
+                <Route path="/private-legacy" element={<ProtectedRoute element={<PrivateLegacyModePage />} />} />
+                <Route path="/deep-messaging" element={<ProtectedRoute element={<DeepMessagingPage />} />} />
+                <Route path="/collaboration" element={<ProtectedRoute element={<CollaborationPage />} />} />
+                <Route path="/offline-memories" element={<ProtectedRoute element={<OfflineMemoriesPage />} />} />
+                <Route path="/marketplace" element={<ProtectedRoute element={<MarketplacePage />} />} />
+                <Route path="/memory-spaces" element={<ProtectedRoute element={<MemorySpacesPage />} />} />
+                <Route path="/global-wall" element={<ProtectedRoute element={<GlobalWallPage />} />} />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

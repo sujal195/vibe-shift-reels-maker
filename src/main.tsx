@@ -12,24 +12,24 @@ preloadCriticalImages([
 // Web Vitals reporting
 const reportWebVitals = () => {
   if ('web-vitals' in window) {
-    import('web-vitals').then(({ getCLS, getFID, getLCP, getTTFB, getFCP }) => {
-      getCLS((metric) => {
+    import('web-vitals').then((webVitals) => {
+      webVitals.onCLS(metric => {
         console.log('CLS:', metric.value);
         sendToAnalytics(metric);
       });
-      getFID((metric) => {
+      webVitals.onFID(metric => {
         console.log('FID:', metric.value);
         sendToAnalytics(metric);
       });
-      getLCP((metric) => {
+      webVitals.onLCP(metric => {
         console.log('LCP:', metric.value);
         sendToAnalytics(metric);
       });
-      getTTFB((metric) => {
+      webVitals.onTTFB(metric => {
         console.log('TTFB:', metric.value);
         sendToAnalytics(metric);
       });
-      getFCP((metric) => {
+      webVitals.onFCP(metric => {
         console.log('FCP:', metric.value);
         sendToAnalytics(metric);
       });

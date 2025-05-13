@@ -4,7 +4,6 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";
-import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -15,65 +14,6 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
-    // PWA plugin for production
-    mode === 'production' && VitePWA({
-      registerType: 'autoUpdate',
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-styles',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-              }
-            }
-          },
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images',
-              expiration: {
-                maxEntries: 60,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
-              }
-            }
-          }
-        ]
-      },
-      includeAssets: ['favicon.ico', 'robots.txt', 'manifest.json'],
-      manifest: {
-        name: 'Memoria - Preserve Your Memories',
-        short_name: 'Memoria',
-        description: 'A social platform to capture, store, and share your special moments',
-        theme_color: '#3b82f6',
-        background_color: '#ffffff',
-        icons: [
-          {
-            src: '/favicon.ico',
-            sizes: '64x64',
-            type: 'image/x-icon'
-          }
-        ],
-        display: 'standalone',
-        start_url: '/'
-      }
-    }),
     // Bundle visualization for production builds
     mode === 'production' && visualizer({
       open: false,
