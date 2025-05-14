@@ -40,11 +40,23 @@ const PhotoUploader = ({
   // Ensure storage buckets exist
   const ensureStorageBuckets = async () => {
     try {
-      const { error } = await supabase.functions.invoke('create-buckets');
-      if (error) {
-        console.error("Error invoking create-buckets function:", error);
+      console.log("Initializing storage buckets...");
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-buckets`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.supabaseKey}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error response from create-buckets:", errorData);
         return false;
       }
+      
+      const result = await response.json();
+      console.log("Storage buckets initialized:", result);
       return true;
     } catch (err) {
       console.error("Failed to initialize storage:", err);
@@ -135,7 +147,7 @@ const PhotoUploader = ({
     if (file && user) {
       setIsUploading(true);
       try {
-        // First, ensure buckets exist
+        // First, ensure buckets exist with a direct call to the edge function
         const bucketsInitialized = await ensureStorageBuckets();
         if (!bucketsInitialized) {
           throw new Error("Failed to initialize storage buckets");
@@ -154,12 +166,14 @@ const PhotoUploader = ({
             ? `profile-pictures/${fileName}`
             : `${user.id}/${fileName}`;
 
+        console.log(`Uploading to bucket: ${bucket}, path: ${filePath}`);
         const { error: uploadError } = await supabase
           .storage
           .from(bucket)
           .upload(filePath, optimizedFile);
 
         if (uploadError) {
+          console.error("Upload error:", uploadError);
           toast({
             title: "Upload Failed",
             description: uploadError.message,
@@ -180,6 +194,7 @@ const PhotoUploader = ({
         
         onPhotoSelect(optimizedFile, data.publicUrl);
       } catch (error: any) {
+        console.error("Upload error:", error);
         toast({
           title: "Upload Error",
           description: error.message || "An unexpected error occurred during upload.",

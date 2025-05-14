@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthSession } from "./useAuthSession";
+import { ensureStorageBuckets } from "@/utils/storageUtils";
 
 type Privacy = "public" | "friends" | "private";
 
@@ -58,21 +58,6 @@ export function usePostCreation() {
   };
 
   const canPost = Boolean(user && (content.trim() || photoFile || audioBlob) && !isPosting);
-
-  // Ensure storage buckets are initialized
-  const ensureStorageBuckets = async () => {
-    try {
-      const { error } = await supabase.functions.invoke('create-buckets');
-      if (error) {
-        console.error("Error initializing storage buckets:", error);
-        return false;
-      }
-      return true;
-    } catch (err) {
-      console.error("Failed to initialize storage:", err);
-      return false;
-    }
-  };
 
   const handlePost = async () => {
     if (!user) {

@@ -22,9 +22,13 @@ Deno.serve(async (req) => {
     const { data: existingBuckets, error: listError } = await supabase.storage.listBuckets()
     
     if (listError) {
+      console.error("Error listing buckets:", listError)
       return new Response(JSON.stringify({
         error: `Error listing buckets: ${listError.message}`
-      }), { status: 400 })
+      }), { 
+        headers: { 'Content-Type': 'application/json' },
+        status: 400 
+      })
     }
     
     // Create buckets if they don't exist
@@ -32,23 +36,61 @@ Deno.serve(async (req) => {
       const exists = existingBuckets?.some(b => b.name === bucket.name)
       
       if (!exists) {
+        console.log(`Creating bucket: ${bucket.name}`)
         const { data, error } = await supabase.storage.createBucket(
           bucket.name,
           { public: bucket.public }
         )
         
         if (error) {
+          console.error(`Error creating bucket ${bucket.name}:`, error)
           results[bucket.name] = `Error creating bucket: ${error.message}`
         } else {
+          console.log(`Bucket ${bucket.name} created successfully`)
           results[bucket.name] = 'Created successfully'
           
-          // Create RLS policies for the bucket to allow authenticated users to upload files
-          await supabase.rpc('create_storage_policy', {
-            bucket_name: bucket.name,
-            definition: 'auth.uid() = auth.uid()', // Allow any authenticated user
-          })
+          // Create necessary folders within the bucket
+          if (bucket.folderPaths.length > 0) {
+            for (const folderPath of bucket.folderPaths) {
+              // Create an empty file to establish the folder
+              const { error: folderError } = await supabase.storage
+                .from(bucket.name)
+                .upload(`${folderPath}.gitkeep`, new Uint8Array(0))
+              
+              if (folderError && !folderError.message.includes('The resource already exists')) {
+                console.error(`Error creating folder ${folderPath}:`, folderError)
+              } else {
+                console.log(`Folder ${folderPath} created successfully in ${bucket.name}`)
+              }
+            }
+          }
+          
+          // Set up public access policy for the bucket
+          try {
+            const policyName = `allow_public_${bucket.name}_access`
+            // Try to create a policy to allow public access if bucket is public
+            if (bucket.public) {
+              await supabase.rpc('create_storage_policy', {
+                bucket_name: bucket.name,
+                definition: 'true', // Allow public access
+                policy_name: policyName,
+                operation: 'SELECT'
+              }).catch(e => console.log(`Policy might already exist: ${e.message}`))
+              
+              // Add policy for authenticated users to upload
+              await supabase.rpc('create_storage_policy', {
+                bucket_name: bucket.name,
+                definition: 'auth.uid() = auth.uid()', // Any authenticated user
+                policy_name: `allow_uploads_${bucket.name}`,
+                operation: 'INSERT'
+              }).catch(e => console.log(`Policy might already exist: ${e.message}`))
+            }
+          } catch (policyError) {
+            console.error(`Error setting policies for ${bucket.name}:`, policyError)
+          }
         }
       } else {
+        console.log(`Bucket ${bucket.name} already exists`)
         results[bucket.name] = 'Already exists'
       }
     }
@@ -62,6 +104,7 @@ Deno.serve(async (req) => {
       status: 200 
     })
   } catch (err) {
+    console.error("Unexpected error in create-buckets function:", err)
     return new Response(JSON.stringify({
       error: `Unexpected error: ${err.message}`
     }), { 

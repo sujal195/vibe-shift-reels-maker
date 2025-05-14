@@ -1,9 +1,9 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, X, StopCircle } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureStorageBuckets } from "@/utils/storageUtils";
 
 interface AudioRecorderProps {
   onAudioRecorded: (audioBlob: Blob, audioUrl: string) => void;
@@ -40,7 +40,16 @@ const AudioRecorder = ({
 
   const startRecording = async () => {
     try {
-      await ensureStorageBuckets();
+      // Ensure storage buckets are initialized before recording
+      const bucketsInitialized = await ensureStorageBuckets();
+      if (!bucketsInitialized) {
+        toast({
+          title: "Storage Error",
+          description: "Could not initialize storage. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
       
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -73,16 +82,6 @@ const AudioRecorder = ({
         // Upload to Supabase storage in the background
         try {
           const fileName = `voice-${Date.now()}.mp3`;
-          
-          // Ensure 'media' bucket exists
-          const { data: bucketList } = await supabase.storage.listBuckets();
-          const mediaBucketExists = bucketList?.some(bucket => bucket.name === 'media');
-          
-          if (!mediaBucketExists) {
-            await supabase.storage.createBucket('media', {
-              public: true
-            });
-          }
           
           const { data, error } = await supabase
             .storage
