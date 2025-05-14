@@ -8,8 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const ensureStorageBuckets = async (): Promise<boolean> => {
   try {
     console.log("Initializing storage buckets...");
-    // Use the API URL directly instead of trying to get it from a Promise
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || new URL(supabase.auth.url).origin;
+    // Use the hard-coded URL from the client.ts file rather than trying to access protected properties
+    const supabaseUrl = "https://gfhcmeicnbccihtyclbj.supabase.co";
     
     // Get the session token for authentication
     const { data: sessionData } = await supabase.auth.getSession();
