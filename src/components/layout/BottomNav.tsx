@@ -1,5 +1,5 @@
 
-import { Home, Users, Bell, Film, User, Menu } from "lucide-react";
+import { Home, Users, Bell, Film, User, Menu, MessageCircle } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useCallback, useState } from "react";
@@ -114,6 +114,16 @@ const BottomNav = () => {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        
+        <Link 
+          to="/deep-messaging" 
+          className={cn(
+            "flex flex-col items-center", 
+            isActive("/deep-messaging") ? "text-primary" : "text-foreground"
+          )}
+        >
+          <MessageCircle size={24} />
+        </Link>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { toast } from "@/components/ui/use-toast";
+import { toast, ensureStorageBuckets } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthSession } from "./useAuthSession";
 
@@ -74,6 +74,9 @@ export function usePostCreation() {
     setIsPosting(true);
 
     try {
+      // Ensure storage buckets are initialized before upload
+      await ensureStorageBuckets();
+
       // First, handle media upload if needed
       let mediaUrl = null;
       let mediaType = null;
@@ -82,8 +85,18 @@ export function usePostCreation() {
         const fileExt = photoFile.name.split('.').pop();
         const filePath = `${user.id}/${Date.now()}.${fileExt}`;
         
+        // Make sure the bucket exists
+        const { data: buckets } = await supabase.storage.listBuckets();
+        const bucketName = 'posts';
+        
+        if (!buckets?.some(b => b.name === bucketName)) {
+          await supabase.storage.createBucket(bucketName, {
+            public: true
+          });
+        }
+        
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('posts')
+          .from(bucketName)
           .upload(filePath, photoFile);
 
         if (uploadError) {
@@ -91,16 +104,26 @@ export function usePostCreation() {
         }
 
         const { data: urlData } = supabase.storage
-          .from('posts')
+          .from(bucketName)
           .getPublicUrl(filePath);
 
         mediaUrl = urlData.publicUrl;
         mediaType = 'image';
       } else if (audioBlob) {
         const filePath = `${user.id}/${Date.now()}.webm`;
+        const bucketName = 'posts';
+        
+        // Make sure the bucket exists
+        const { data: buckets } = await supabase.storage.listBuckets();
+        
+        if (!buckets?.some(b => b.name === bucketName)) {
+          await supabase.storage.createBucket(bucketName, {
+            public: true
+          });
+        }
         
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('posts')
+          .from(bucketName)
           .upload(filePath, audioBlob);
 
         if (uploadError) {
@@ -108,7 +131,7 @@ export function usePostCreation() {
         }
 
         const { data: urlData } = supabase.storage
-          .from('posts')
+          .from(bucketName)
           .getPublicUrl(filePath);
 
         mediaUrl = urlData.publicUrl;

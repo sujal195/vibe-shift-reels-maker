@@ -1,7 +1,7 @@
 
 import { Textarea } from "@/components/ui/textarea";
-import PhotoUploader from "./create/PhotoUploader";
-import AudioRecorder from "./create/AudioRecorder";
+import PhotoUploader from "@/components/photo/PhotoUploader";
+import AudioRecorder from "@/components/post/AudioRecorder";
 import PrivacySelector from "./create/PrivacySelector";
 import PostButton from "./create/PostButton";
 import { usePostCreation } from "@/hooks/usePostCreation";
@@ -47,6 +47,7 @@ const CreatePost = () => {
         onPhotoSelect={handlePhotoSelect}
         onRemovePhoto={handleRemovePhoto}
         disabled={isRecording || recordingComplete || isPosting}
+        uploadType="post"
       />
 
       {!photoPreview && (
