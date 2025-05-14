@@ -8,12 +8,14 @@ import { supabase } from "@/integrations/supabase/client";
 export const ensureStorageBuckets = async (): Promise<boolean> => {
   try {
     console.log("Initializing storage buckets...");
-    // Use the function URL directly instead of accessing protected properties
-    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-buckets`, {
+    // Use the API URL directly without accessing protected properties
+    const supabaseUrl = new URL(supabase.auth.getSession().then(() => {})).origin;
+    
+    const response = await fetch(`${supabaseUrl}/functions/v1/create-buckets`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabase.supabaseKey}`
+        'Authorization': `Bearer ${supabase.auth.getSession().then(session => session?.data?.session?.access_token || '')}`
       }
     });
     

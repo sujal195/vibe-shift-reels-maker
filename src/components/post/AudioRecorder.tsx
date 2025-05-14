@@ -1,8 +1,7 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, X, StopCircle } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { ensureStorageBuckets } from "@/utils/storageUtils";
 
 interface AudioRecorderProps {
@@ -24,48 +23,20 @@ const AudioRecorder = ({
   const audioChunksRef = useRef<Blob[]>([]);
   const [recordingTime, setRecordingTime] = useState<number>(0);
   const timerRef = useRef<number | null>(null);
-  const [audioVisualization, setAudioVisualization] = useState<number[]>([]);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const animationRef = useRef<number | null>(null);
-
-  // Initialize storage buckets
-  const ensureStorageBuckets = async () => {
-    try {
-      const { error } = await supabase.functions.invoke('create-buckets');
-      if (error) throw error;
-    } catch (err) {
-      console.error("Failed to initialize storage:", err);
-    }
-  };
 
   const startRecording = async () => {
     try {
-      // Ensure storage buckets are initialized before recording
+      // Before recording, ensure storage buckets are initialized
       const bucketsInitialized = await ensureStorageBuckets();
       if (!bucketsInitialized) {
-        toast({
-          title: "Storage Error",
-          description: "Could not initialize storage. Please try again.",
-          variant: "destructive"
-        });
+        console.error("Failed to initialize storage buckets");
         return;
       }
-      
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
-
-      // Set up audio visualization
-      const audioContext = new AudioContext();
-      const source = audioContext.createMediaStreamSource(stream);
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 256;
-      source.connect(analyser);
-      analyserRef.current = analyser;
-
-      // Start audio visualization
-      visualizeAudio();
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -73,42 +44,10 @@ const AudioRecorder = ({
         }
       };
 
-      mediaRecorder.onstop = async () => {
+      mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/mp3' });
-        
-        // Create local URL first for immediate preview
-        const localAudioUrl = URL.createObjectURL(audioBlob);
-        
-        // Upload to Supabase storage in the background
-        try {
-          const fileName = `voice-${Date.now()}.mp3`;
-          
-          const { data, error } = await supabase
-            .storage
-            .from('media')
-            .upload(`voice-notes/${fileName}`, audioBlob);
-            
-          if (error) throw error;
-          
-          // Get public URL
-          const { data: urlData } = supabase
-            .storage
-            .from('media')
-            .getPublicUrl(`voice-notes/${fileName}`);
-          
-          // Pass the Supabase URL to the parent component  
-          onAudioRecorded(audioBlob, urlData.publicUrl);
-        } catch (error) {
-          console.error("Error uploading audio:", error);
-          toast({
-            title: "Upload Error",
-            description: "Failed to upload audio. Using local preview instead.",
-            variant: "destructive"
-          });
-          
-          // Use local URL as fallback if upload fails
-          onAudioRecorded(audioBlob, localAudioUrl);
-        }
+        const audioUrl = URL.createObjectURL(audioBlob);
+        onAudioRecorded(audioBlob, audioUrl);
         
         // Stop all audio tracks
         stream.getAudioTracks().forEach(track => track.stop());
@@ -118,18 +57,10 @@ const AudioRecorder = ({
           window.clearInterval(timerRef.current);
           timerRef.current = null;
         }
-        
-        // Stop visualization
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current);
-          animationRef.current = null;
-        }
-        
         setRecordingTime(0);
       };
 
-      // Start the timer - make sure this runs and updates UI
-      setRecordingTime(0);
+      // Start the timer
       timerRef.current = window.setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -137,38 +68,7 @@ const AudioRecorder = ({
       mediaRecorder.start();
     } catch (err) {
       console.error("Error accessing microphone:", err);
-      toast({
-        title: "Microphone Error",
-        description: "Could not access your microphone. Please check permissions.",
-        variant: "destructive"
-      });
     }
-  };
-
-  const visualizeAudio = () => {
-    if (!analyserRef.current) return;
-    
-    const analyser = analyserRef.current;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-    
-    const updateVisualization = () => {
-      if (!analyserRef.current) return;
-      
-      analyserRef.current.getByteFrequencyData(dataArray);
-      
-      // Create visualization data - taking only some values for performance
-      const visualizationData = Array.from({length: 20}, (_, i) => {
-        const index = Math.floor(i * (bufferLength / 20));
-        // Normalize value between 2 and 20
-        return 2 + (dataArray[index] / 255) * 18;
-      });
-      
-      setAudioVisualization(visualizationData);
-      animationRef.current = requestAnimationFrame(updateVisualization);
-    };
-    
-    animationRef.current = requestAnimationFrame(updateVisualization);
   };
 
   const stopRecording = () => {
@@ -179,12 +79,6 @@ const AudioRecorder = ({
       if (timerRef.current) {
         window.clearInterval(timerRef.current);
         timerRef.current = null;
-      }
-      
-      // Stop visualization
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
       }
     }
   };
@@ -202,16 +96,13 @@ const AudioRecorder = ({
       if (timerRef.current) {
         window.clearInterval(timerRef.current);
       }
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
     };
   }, []);
 
   return (
     <>
       {isRecording ? (
-        <div className="flex flex-col gap-2 p-3 bg-secondary rounded-md mb-4">
+        <div className="flex flex-col gap-2 p-3 bg-secondary rounded-md mb-4 animate-pulse">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <span className="h-3 w-3 rounded-full bg-red-500 mr-2 animate-pulse"></span>
@@ -227,23 +118,6 @@ const AudioRecorder = ({
               Stop
             </Button>
           </div>
-          
-          {/* Audio Visualization */}
-          <div className="flex items-end h-12 gap-[2px] my-2 justify-center">
-            {audioVisualization.map((height, index) => (
-              <div 
-                key={index}
-                className="w-[3px] bg-primary rounded-full"
-                style={{ height: `${height}px`, animation: `pulse-slow ${(index % 3) + 1}s infinite` }}
-              ></div>
-            ))}
-          </div>
-          
-          {/* Recording timer display - prominently shown */}
-          <div className="text-center font-mono font-bold text-xl my-2">
-            {formatTime(recordingTime)}
-          </div>
-          
           <div className="w-full bg-muted rounded-full h-1">
             <div 
               className="bg-primary h-1 rounded-full" 
