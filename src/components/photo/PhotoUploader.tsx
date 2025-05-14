@@ -133,8 +133,14 @@ const PhotoUploader = ({
             ? `profile-pictures/${fileName}`
             : `post-pictures/${fileName}`;
 
-        // Initialize buckets if needed
-        await ensureStorageBuckets();
+        // Ensure bucket exists before upload
+        const { data: buckets } = await supabase.storage.listBuckets();
+        
+        if (!buckets?.some(b => b.name === bucket)) {
+          await supabase.storage.createBucket(bucket, {
+            public: true
+          });
+        }
 
         const { error: uploadError } = await supabase
           .storage
@@ -169,17 +175,6 @@ const PhotoUploader = ({
         });
       }
       setIsUploading(false);
-    }
-  };
-
-  // Ensure storage buckets are initialized
-  const ensureStorageBuckets = async () => {
-    try {
-      // Call the edge function to create storage buckets if they don't exist
-      const { error } = await supabase.functions.invoke('create-buckets');
-      if (error) throw error;
-    } catch (err) {
-      console.error("Failed to initialize storage:", err);
     }
   };
 

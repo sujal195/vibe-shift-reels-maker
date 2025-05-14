@@ -67,9 +67,23 @@ const AudioRecorder = ({
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/mp3' });
         
-        // Upload to Supabase storage and get URL
+        // Create local URL first for immediate preview
+        const localAudioUrl = URL.createObjectURL(audioBlob);
+        
+        // Upload to Supabase storage in the background
         try {
           const fileName = `voice-${Date.now()}.mp3`;
+          
+          // Ensure 'media' bucket exists
+          const { data: bucketList } = await supabase.storage.listBuckets();
+          const mediaBucketExists = bucketList?.some(bucket => bucket.name === 'media');
+          
+          if (!mediaBucketExists) {
+            await supabase.storage.createBucket('media', {
+              public: true
+            });
+          }
+          
           const { data, error } = await supabase
             .storage
             .from('media')
@@ -82,19 +96,19 @@ const AudioRecorder = ({
             .storage
             .from('media')
             .getPublicUrl(`voice-notes/${fileName}`);
-            
+          
+          // Pass the Supabase URL to the parent component  
           onAudioRecorded(audioBlob, urlData.publicUrl);
         } catch (error) {
           console.error("Error uploading audio:", error);
           toast({
             title: "Upload Error",
-            description: "Failed to upload audio. Please try again.",
+            description: "Failed to upload audio. Using local preview instead.",
             variant: "destructive"
           });
           
-          // Fallback to local URL if upload fails
-          const audioUrl = URL.createObjectURL(audioBlob);
-          onAudioRecorded(audioBlob, audioUrl);
+          // Use local URL as fallback if upload fails
+          onAudioRecorded(audioBlob, localAudioUrl);
         }
         
         // Stop all audio tracks

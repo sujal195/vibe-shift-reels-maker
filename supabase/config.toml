@@ -6,3 +6,8 @@ verify_jwt = false
 
 [functions.notify-admin]
 verify_jwt = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = false
+enable_confirmations = false
