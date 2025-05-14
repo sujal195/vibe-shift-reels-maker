@@ -1,4 +1,3 @@
-
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, X } from "lucide-react";
@@ -7,6 +6,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { getImageDimensions } from "@/utils/imageUtils";
+import { ensureStorageBuckets } from "@/utils/storageUtils";
 
 interface PhotoUploaderProps {
   photoPreview: string | null;
@@ -36,33 +36,6 @@ const PhotoUploader = ({
       });
     }
   }, [photoPreview]);
-
-  // Ensure storage buckets exist
-  const ensureStorageBuckets = async () => {
-    try {
-      console.log("Initializing storage buckets...");
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-buckets`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error response from create-buckets:", errorData);
-        return false;
-      }
-      
-      const result = await response.json();
-      console.log("Storage buckets initialized:", result);
-      return true;
-    } catch (err) {
-      console.error("Failed to initialize storage:", err);
-      return false;
-    }
-  };
 
   // Determine the target bucket based on uploadType
   const getBucket = () => {

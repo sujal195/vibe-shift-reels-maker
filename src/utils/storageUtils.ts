@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const ensureStorageBuckets = async (): Promise<boolean> => {
   try {
     console.log("Initializing storage buckets...");
+    // Use the function URL directly instead of accessing protected properties
     const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-buckets`, {
       method: 'POST',
       headers: {

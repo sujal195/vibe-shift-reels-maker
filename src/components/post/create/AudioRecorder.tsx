@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, X, StopCircle } from "lucide-react";
+import { ensureStorageBuckets } from "@/utils/storageUtils";
 
 interface AudioRecorderProps {
   onAudioRecorded: (audioBlob: Blob, audioUrl: string) => void;
