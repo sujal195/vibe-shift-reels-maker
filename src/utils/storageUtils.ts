@@ -9,7 +9,7 @@ export const ensureStorageBuckets = async (): Promise<boolean> => {
   try {
     console.log("Initializing storage buckets...");
     // Use the API URL directly instead of trying to get it from a Promise
-    const supabaseUrl = new URL(supabase.supabaseUrl).origin;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || new URL(supabase.auth.url).origin;
     
     // Get the session token for authentication
     const { data: sessionData } = await supabase.auth.getSession();
