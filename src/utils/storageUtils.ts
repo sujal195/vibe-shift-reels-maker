@@ -8,14 +8,18 @@ import { supabase } from "@/integrations/supabase/client";
 export const ensureStorageBuckets = async (): Promise<boolean> => {
   try {
     console.log("Initializing storage buckets...");
-    // Use the API URL directly without accessing protected properties
-    const supabaseUrl = new URL(supabase.auth.getSession().then(() => {})).origin;
+    // Use the API URL directly instead of trying to get it from a Promise
+    const supabaseUrl = new URL(supabase.supabaseUrl).origin;
+    
+    // Get the session token for authentication
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token || '';
     
     const response = await fetch(`${supabaseUrl}/functions/v1/create-buckets`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabase.auth.getSession().then(session => session?.data?.session?.access_token || '')}`
+        'Authorization': `Bearer ${accessToken}`
       }
     });
     
