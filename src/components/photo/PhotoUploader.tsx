@@ -37,11 +37,26 @@ const PhotoUploader = ({
     }
   }, [photoPreview]);
 
+  // Ensure storage buckets exist
+  const ensureStorageBuckets = async () => {
+    try {
+      const { error } = await supabase.functions.invoke('create-buckets');
+      if (error) {
+        console.error("Error invoking create-buckets function:", error);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error("Failed to initialize storage:", err);
+      return false;
+    }
+  };
+
   // Determine the target bucket based on uploadType
   const getBucket = () => {
     if (uploadType === 'profile') return 'avatars';
-    if (uploadType === 'cover') return 'profiles';
-    return 'media';
+    if (uploadType === 'cover') return 'avatars';
+    return 'posts';
   };
 
   const handlePhotoClick = () => {
@@ -120,6 +135,12 @@ const PhotoUploader = ({
     if (file && user) {
       setIsUploading(true);
       try {
+        // First, ensure buckets exist
+        const bucketsInitialized = await ensureStorageBuckets();
+        if (!bucketsInitialized) {
+          throw new Error("Failed to initialize storage buckets");
+        }
+        
         // Optimize the image before upload
         const optimizedFile = await optimizeImage(file);
         
@@ -131,16 +152,7 @@ const PhotoUploader = ({
             ? `cover-pictures/${fileName}`
             : uploadType === "profile"
             ? `profile-pictures/${fileName}`
-            : `post-pictures/${fileName}`;
-
-        // Ensure bucket exists before upload
-        const { data: buckets } = await supabase.storage.listBuckets();
-        
-        if (!buckets?.some(b => b.name === bucket)) {
-          await supabase.storage.createBucket(bucket, {
-            public: true
-          });
-        }
+            : `${user.id}/${fileName}`;
 
         const { error: uploadError } = await supabase
           .storage
@@ -167,10 +179,10 @@ const PhotoUploader = ({
         setImageDimensions(dimensions);
         
         onPhotoSelect(optimizedFile, data.publicUrl);
-      } catch (error) {
+      } catch (error: any) {
         toast({
           title: "Upload Error",
-          description: "An unexpected error occurred during upload. Storage might not be configured.",
+          description: error.message || "An unexpected error occurred during upload.",
           variant: "destructive"
         });
       }

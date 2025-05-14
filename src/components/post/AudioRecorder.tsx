@@ -129,7 +129,8 @@ const AudioRecorder = ({
         setRecordingTime(0);
       };
 
-      // Start the timer
+      // Start the timer - make sure this runs and updates UI
+      setRecordingTime(0);
       timerRef.current = window.setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -211,7 +212,7 @@ const AudioRecorder = ({
   return (
     <>
       {isRecording ? (
-        <div className="flex flex-col gap-2 p-3 bg-secondary rounded-md mb-4 animate-pulse">
+        <div className="flex flex-col gap-2 p-3 bg-secondary rounded-md mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <span className="h-3 w-3 rounded-full bg-red-500 mr-2 animate-pulse"></span>
@@ -237,6 +238,11 @@ const AudioRecorder = ({
                 style={{ height: `${height}px`, animation: `pulse-slow ${(index % 3) + 1}s infinite` }}
               ></div>
             ))}
+          </div>
+          
+          {/* Recording timer display - prominently shown */}
+          <div className="text-center font-mono font-bold text-xl my-2">
+            {formatTime(recordingTime)}
           </div>
           
           <div className="w-full bg-muted rounded-full h-1">

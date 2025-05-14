@@ -11,4 +11,3 @@ verify_jwt = false
 enable_signup = true
 double_confirm_changes = false
 enable_confirmations = false
-
