@@ -74,11 +74,8 @@ export function usePostCreation() {
     setIsPosting(true);
 
     try {
-      // First, ensure storage buckets are initialized
-      const bucketsInitialized = await ensureStorageBuckets();
-      if (!bucketsInitialized) {
-        throw new Error("Failed to initialize storage buckets");
-      }
+      // We still call ensureStorageBuckets, but it now just returns true
+      await ensureStorageBuckets();
 
       // Handle media upload if needed
       let mediaUrl = null;

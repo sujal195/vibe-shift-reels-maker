@@ -120,11 +120,8 @@ const PhotoUploader = ({
     if (file && user) {
       setIsUploading(true);
       try {
-        // First, ensure buckets exist with a direct call to the edge function
-        const bucketsInitialized = await ensureStorageBuckets();
-        if (!bucketsInitialized) {
-          throw new Error("Failed to initialize storage buckets");
-        }
+        // We still call ensureStorageBuckets, but it now just returns true
+        await ensureStorageBuckets();
         
         // Optimize the image before upload
         const optimizedFile = await optimizeImage(file);

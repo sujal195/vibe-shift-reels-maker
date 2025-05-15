@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, X, StopCircle } from "lucide-react";
@@ -26,12 +25,8 @@ const AudioRecorder = ({
 
   const startRecording = async () => {
     try {
-      // Before recording, ensure storage buckets are initialized
-      const bucketsInitialized = await ensureStorageBuckets();
-      if (!bucketsInitialized) {
-        console.error("Failed to initialize storage buckets");
-        return;
-      }
+      // We still call ensureStorageBuckets, but it now just returns true
+      await ensureStorageBuckets();
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
