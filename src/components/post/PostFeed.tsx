@@ -1,125 +1,95 @@
 
-import { useEffect, useState } from "react";
-import PostCard, { Post } from "./PostCard";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuthSession } from "@/hooks/useAuthSession";
-import { samplePosts } from "@/data/samplePosts";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Heart, MessageCircle, Share, MoreHorizontal } from "lucide-react";
 
-const PostFeed = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuthSession();
+// Mock data for demonstration
+const mockPosts = [
+  {
+    id: 1,
+    user: {
+      name: "John Doe",
+      avatar: "",
+    },
+    content: "Just had an amazing day at the beach! The sunset was absolutely breathtaking. Sometimes it's the simple moments that create the most beautiful memories. 🌅",
+    timestamp: "2 hours ago",
+    likes: 15,
+    comments: 3,
+    shares: 1,
+  },
+  {
+    id: 2,
+    user: {
+      name: "Sarah Smith",
+      avatar: "",
+    },
+    content: "Celebrating my graduation today! Four years of hard work finally paid off. Grateful for all the support from family and friends. On to the next chapter! 🎓",
+    timestamp: "5 hours ago",
+    likes: 42,
+    comments: 12,
+    shares: 5,
+  },
+];
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setLoading(true);
-      
-      try {
-        if (!user) {
-          // For non-authenticated users, just show sample posts
-          setPosts(samplePosts);
-          setLoading(false);
-          return;
-        }
-        
-        // Fetch real posts from Supabase with fixed join
-        const { data: postsData, error } = await supabase
-          .from('posts')
-          .select(`
-            id, 
-            content, 
-            created_at, 
-            user_id, 
-            likes_count, 
-            comments_count, 
-            media_url, 
-            media_type,
-            privacy,
-            profiles:user_id(id, display_name, avatar_url)
-          `)
-          .order('created_at', { ascending: false })
-          .limit(10);
-          
-        if (error) {
-          throw error;
-        }
-        
-        if (postsData && postsData.length > 0) {
-          // Map Supabase data to Post type with type safety
-          const formattedPosts: Post[] = postsData.map((post: any) => ({
-            id: post.id,
-            content: post.content,
-            author: {
-              id: post.profiles?.id || 'unknown',
-              name: post.profiles?.display_name || 'User',
-              avatar: post.profiles?.avatar_url || null,
-            },
-            createdAt: post.created_at,
-            likes: post.likes_count || 0,
-            comments: post.comments_count || 0,
-            mediaType: post.media_type as "photo" | "voice" | undefined,
-            mediaUrl: post.media_url,
-            privacy: post.privacy as "public" | "friends" | "private",
-          }));
-          
-          // Combine real and sample posts, with real posts first
-          const combinedPosts = [...formattedPosts];
-          
-          // Add sample posts only if there are fewer than 10 real posts
-          if (formattedPosts.length < 10) {
-            // Ensure each sample post has a unique ID (prepend "sample-" to avoid conflicts)
-            const samplePostsWithUniqueIds = samplePosts.map(post => ({
-              ...post,
-              id: `sample-${post.id}`
-            }));
-            
-            combinedPosts.push(...samplePostsWithUniqueIds.slice(0, 10 - formattedPosts.length));
-          }
-          
-          setPosts(combinedPosts);
-        } else {
-          // If no real posts, show sample posts
-          setPosts(samplePosts);
-        }
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-        // Fallback to sample posts
-        setPosts(samplePosts);
-      }
-      
-      setLoading(false);
-    };
-
-    fetchPosts();
-  }, [user]);
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="p-4 border border-border rounded-lg animate-pulse">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="h-10 w-10 bg-secondary rounded-full"></div>
-              <div className="flex-1 space-y-2">
-                <div className="h-4 bg-secondary rounded w-1/4"></div>
-                <div className="h-3 bg-secondary rounded w-1/6"></div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="h-4 bg-secondary rounded w-full"></div>
-              <div className="h-4 bg-secondary rounded w-5/6"></div>
+const PostCard = ({ post }: { post: any }) => {
+  return (
+    <Card className="w-full">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Avatar>
+              <AvatarImage src={post.user.avatar} />
+              <AvatarFallback>{post.user.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-semibold">{post.user.name}</p>
+              <p className="text-sm text-muted-foreground">{post.timestamp}</p>
             </div>
           </div>
-        ))}
-      </div>
-    );
-  }
+          <Button variant="ghost" size="sm">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <p className="text-sm mb-4">{post.content}</p>
+        
+        <div className="flex items-center justify-between pt-4 border-t">
+          <div className="flex space-x-4">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-red-500">
+              <Heart className="h-4 w-4 mr-2" />
+              {post.likes}
+            </Button>
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-blue-500">
+              <MessageCircle className="h-4 w-4 mr-2" />
+              {post.comments}
+            </Button>
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-green-500">
+              <Share className="h-4 w-4 mr-2" />
+              {post.shares}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
+const PostFeed = () => {
   return (
-    <div className="space-y-4">
-      {posts.map((post) => (
+    <div className="space-y-6">
+      {mockPosts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
+      
+      {mockPosts.length === 0 && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <p className="text-muted-foreground">No memories to show yet. Start sharing your first memory!</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
