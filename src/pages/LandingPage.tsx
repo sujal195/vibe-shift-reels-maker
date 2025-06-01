@@ -1,13 +1,9 @@
 
 import { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ParticlesContainer } from '@/components/landing/ParticlesContainer';
-import { useAuthSession } from '@/hooks/useAuthSession';
 
 const LandingPage = () => {
-  const { user } = useAuthSession();
-  const navigate = useNavigate();
-
   useEffect(() => {
     // Add fade-in classes after component mounts for animation
     const elements = document.querySelectorAll('.animate-on-mount');
@@ -15,7 +11,7 @@ const LandingPage = () => {
       setTimeout(() => {
         el.classList.add('animate-fade-in');
         el.classList.remove('opacity-0');
-      }, index * 500); // Stagger animations
+      }, index * 500);
     });
   }, []);
 
@@ -25,15 +21,11 @@ const LandingPage = () => {
       
       {/* Hero Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto space-y-8">
-        <h1 
-          className="animate-on-mount opacity-0 text-4xl md:text-6xl font-bold text-white mb-6 font-display"
-        >
+        <h1 className="animate-on-mount opacity-0 text-4xl md:text-6xl font-bold text-white mb-6 font-display">
           Your Memories, Forever Alive.
         </h1>
         
-        <p 
-          className="animate-on-mount opacity-0 text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto"
-        >
+        <p className="animate-on-mount opacity-0 text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
           Turn your emotions into a living timeline. Build your story before it fades away.
         </p>
         

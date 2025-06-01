@@ -32,44 +32,41 @@ import GlobalWallPage from "./pages/features/GlobalWallPage";
 import { useState } from "react";
 import CoinsPage from "./pages/CoinsPage";
 
+const LoadingScreen = () => (
+  <div className="min-h-screen flex items-center justify-center bg-black">
+    <span className="text-xl text-white">Loading...</span>
+  </div>
+);
+
 const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
   const { user, isLoading } = useAuthSession();
   
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <span className="text-xl text-white">Loading...</span>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!user) {
-    return <Navigate to="/auth" />;
+    return <Navigate to="/auth" replace />;
   }
 
   return element;
 };
 
-const AuthenticatedRedirect = ({ element }: { element: JSX.Element }) => {
+const PublicRoute = ({ element }: { element: JSX.Element }) => {
   const { user, isLoading } = useAuthSession();
   
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <span className="text-xl text-white">Loading...</span>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (user) {
-    return <Navigate to="/home" />;
+    return <Navigate to="/home" replace />;
   }
 
   return element;
 };
 
 const App = () => {
-  // Create a new QueryClient instance for each component render
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -88,8 +85,8 @@ const App = () => {
             <Sonner />
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<AuthenticatedRedirect element={<LandingPage />} />} />
-                <Route path="/auth" element={<AuthenticatedRedirect element={<AuthPage />} />} />
+                <Route path="/" element={<PublicRoute element={<LandingPage />} />} />
+                <Route path="/auth" element={<PublicRoute element={<AuthPage />} />} />
                 <Route path="/profile-setup" element={<ProtectedRoute element={<ProfileSetupPage />} />} />
                 <Route path="/home" element={<ProtectedRoute element={<Index />} />} />
                 <Route path="/friends" element={<ProtectedRoute element={<FriendsPage />} />} />
