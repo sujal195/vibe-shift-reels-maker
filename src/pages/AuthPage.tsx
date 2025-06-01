@@ -14,14 +14,14 @@ const AuthPage = () => {
 
   useEffect(() => {
     if (!isLoading && user) {
-      navigate("/invitation-code");
+      navigate("/home");
     }
   }, [user, isLoading, navigate]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
-        <span className="text-xl text-primary">Loading...</span>
+        <span className="text-xl text-white">Loading...</span>
       </div>
     );
   }

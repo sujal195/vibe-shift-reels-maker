@@ -37,8 +37,8 @@ const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <span className="text-xl text-primary">Loading...</span>
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <span className="text-xl text-white">Loading...</span>
       </div>
     );
   }
@@ -55,8 +55,8 @@ const AuthenticatedRedirect = ({ element }: { element: JSX.Element }) => {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <span className="text-xl text-primary">Loading...</span>
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <span className="text-xl text-white">Loading...</span>
       </div>
     );
   }
@@ -90,7 +90,6 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<AuthenticatedRedirect element={<LandingPage />} />} />
                 <Route path="/auth" element={<AuthenticatedRedirect element={<AuthPage />} />} />
-                {/* Removed invitation-code route */}
                 <Route path="/profile-setup" element={<ProtectedRoute element={<ProfileSetupPage />} />} />
                 <Route path="/home" element={<ProtectedRoute element={<Index />} />} />
                 <Route path="/friends" element={<ProtectedRoute element={<FriendsPage />} />} />

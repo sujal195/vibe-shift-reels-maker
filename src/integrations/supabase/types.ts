@@ -81,6 +81,36 @@ export type Database = {
         }
         Relationships: []
       }
+      memories: {
+        Row: {
+          created_at: string
+          description: string | null
+          emotion: string | null
+          id: string
+          image_url: string | null
+          title: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at: string
+          description?: string | null
+          emotion?: string | null
+          id?: string
+          image_url?: string | null
+          title?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          emotion?: string | null
+          id?: string
+          image_url?: string | null
+          title?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           comments_count: number | null
@@ -152,9 +182,13 @@ export type Database = {
           cover_url: string | null
           created_at: string | null
           display_name: string | null
+          email_notifications: boolean | null
           id: string
           invitation_code_created_at: string | null
           invitation_code_used: string | null
+          phone_number: string | null
+          profile_completed: boolean | null
+          sms_notifications: boolean | null
           username: string | null
         }
         Insert: {
@@ -164,9 +198,13 @@ export type Database = {
           cover_url?: string | null
           created_at?: string | null
           display_name?: string | null
+          email_notifications?: boolean | null
           id: string
           invitation_code_created_at?: string | null
           invitation_code_used?: string | null
+          phone_number?: string | null
+          profile_completed?: boolean | null
+          sms_notifications?: boolean | null
           username?: string | null
         }
         Update: {
@@ -176,9 +214,13 @@ export type Database = {
           cover_url?: string | null
           created_at?: string | null
           display_name?: string | null
+          email_notifications?: boolean | null
           id?: string
           invitation_code_created_at?: string | null
           invitation_code_used?: string | null
+          phone_number?: string | null
+          profile_completed?: boolean | null
+          sms_notifications?: boolean | null
           username?: string | null
         }
         Relationships: []
@@ -238,6 +280,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subscriptions: {
+        Row: {
+          attachment_urls: string[] | null
+          category: string | null
+          cost: number | null
+          created_at: string
+          custom_category: string | null
+          expiry_date: string
+          id: string
+          notes: string | null
+          notification_preferences: string[] | null
+          notification_timing: string[] | null
+          service_icon: string | null
+          service_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attachment_urls?: string[] | null
+          category?: string | null
+          cost?: number | null
+          created_at?: string
+          custom_category?: string | null
+          expiry_date: string
+          id?: string
+          notes?: string | null
+          notification_preferences?: string[] | null
+          notification_timing?: string[] | null
+          service_icon?: string | null
+          service_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attachment_urls?: string[] | null
+          category?: string | null
+          cost?: number | null
+          created_at?: string
+          custom_category?: string | null
+          expiry_date?: string
+          id?: string
+          notes?: string | null
+          notification_preferences?: string[] | null
+          notification_timing?: string[] | null
+          service_icon?: string | null
+          service_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_notifications: {
         Row: {
@@ -319,6 +412,10 @@ export type Database = {
     }
     Functions: {
       can_access_premium: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
+      check_subscription_limit: {
         Args: { user_id: string }
         Returns: boolean
       }
