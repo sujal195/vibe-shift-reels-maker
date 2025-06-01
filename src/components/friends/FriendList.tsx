@@ -1,179 +1,90 @@
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import FriendCard, { Friend } from "./FriendCard";
-
-// Mock data - in a real app this would come from API/backend
-const initialFriends: Friend[] = [
-  {
-    id: "1",
-    name: "Jamie Smith",
-    status: "none",
-  },
-  {
-    id: "2",
-    name: "Alex Johnson",
-    status: "requested",
-  },
-  {
-    id: "3",
-    name: "Morgan Lee",
-    status: "friends",
-  },
-  {
-    id: "4",
-    name: "Taylor Kim",
-    status: "pending",
-  },
-  {
-    id: "5",
-    name: "Jordan Roberts",
-    status: "none",
-  },
-  {
-    id: "6",
-    name: "Casey Brown",
-    status: "none",
-  },
-  {
-    id: "7",
-    name: "Riley Wilson",
-    status: "none",
-  },
-  {
-    id: "8",
-    name: "Avery Garcia",
-    status: "requested",
-  }
-];
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 interface FriendListProps {
-  searchQuery?: string;
+  searchQuery: string;
 }
 
-const FriendList = ({ searchQuery = "" }: FriendListProps) => {
-  const [friends, setFriends] = useState<Friend[]>(initialFriends);
+const FriendList = ({ searchQuery }: FriendListProps) => {
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const { user } = useAuthSession();
 
-  // Filter friends based on search query
-  const filteredFriends = useMemo(() => {
-    if (!searchQuery) return friends;
-    return friends.filter(friend => 
+  // Mock friends data for now - replace with actual Supabase query when friend system is implemented
+  const mockFriends: Friend[] = [
+    {
+      id: "1",
+      name: "John Doe",
+      status: "friends",
+      avatar: "https://i.pravatar.cc/150?img=1"
+    },
+    {
+      id: "2",
+      name: "Jane Smith",
+      status: "requested",
+      avatar: "https://i.pravatar.cc/150?img=2"
+    },
+    {
+      id: "3",
+      name: "Mike Johnson",
+      status: "none",
+      avatar: "https://i.pravatar.cc/150?img=3"
+    },
+    {
+      id: "4",
+      name: "Sarah Wilson",
+      status: "pending",
+      avatar: "https://i.pravatar.cc/150?img=4"
+    }
+  ];
+
+  useEffect(() => {
+    // Filter friends based on search query
+    const filteredFriends = mockFriends.filter(friend =>
       friend.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [friends, searchQuery]);
+    setFriends(filteredFriends);
+  }, [searchQuery]);
 
-  const handleSendRequest = (id: string) => {
-    // In a real app, this would make an API call
-    console.log(`Friend request sent to user with id: ${id}`);
-    // Update local state to reflect changes
-    setFriends(friends.map(f => 
-      f.id === id ? { ...f, status: "pending" } : f
+  const handleSendRequest = (friendId: string) => {
+    setFriends(friends.map(friend =>
+      friend.id === friendId ? { ...friend, status: "pending" } : friend
     ));
   };
 
-  const handleAcceptRequest = (id: string) => {
-    // In a real app, this would make an API call
-    console.log(`Friend request accepted for user with id: ${id}`);
-    // Update local state to reflect changes
-    setFriends(friends.map(f => 
-      f.id === id ? { ...f, status: "friends" } : f
+  const handleAcceptRequest = (friendId: string) => {
+    setFriends(friends.map(friend =>
+      friend.id === friendId ? { ...friend, status: "friends" } : friend
     ));
   };
 
-  const handleRejectRequest = (id: string) => {
-    // In a real app, this would make an API call
-    console.log(`Friend request rejected for user with id: ${id}`);
-    // Update local state to reflect changes
-    setFriends(friends.map(f => 
-      f.id === id ? { ...f, status: "none" } : f
+  const handleRejectRequest = (friendId: string) => {
+    setFriends(friends.map(friend =>
+      friend.id === friendId ? { ...friend, status: "none" } : friend
     ));
   };
 
-  // Filter friends by those who have sent requests
-  const friendRequests = filteredFriends.filter(f => f.status === "requested");
-  
-  // Filter friends by existing friends
-  const existingFriends = filteredFriends.filter(f => f.status === "friends");
-  
-  // Filter friends by those who are neither friends nor have sent requests
-  const suggestedFriends = filteredFriends.filter(f => f.status === "none");
-
-  // Pending sent requests
-  const pendingRequests = filteredFriends.filter(f => f.status === "pending");
+  if (!user) {
+    return <div>Please sign in to view friends.</div>;
+  }
 
   return (
-    <div className="space-y-6">
-      {friendRequests.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Friend Requests</h2>
-          <div className="space-y-3">
-            {friendRequests.map(friend => (
-              <FriendCard
-                key={friend.id}
-                friend={friend}
-                onSendRequest={handleSendRequest}
-                onAcceptRequest={handleAcceptRequest}
-                onRejectRequest={handleRejectRequest}
-              />
-            ))}
-          </div>
+    <div className="space-y-4">
+      {friends.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No friends found.</p>
         </div>
-      )}
-
-      {existingFriends.length > 0 && searchQuery && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Your Friends</h2>
-          <div className="space-y-3">
-            {existingFriends.map(friend => (
-              <FriendCard
-                key={friend.id}
-                friend={friend}
-                onSendRequest={handleSendRequest}
-                onAcceptRequest={handleAcceptRequest}
-                onRejectRequest={handleRejectRequest}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {pendingRequests.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Pending Requests</h2>
-          <div className="space-y-3">
-            {pendingRequests.map(friend => (
-              <FriendCard
-                key={friend.id}
-                friend={friend}
-                onSendRequest={handleSendRequest}
-                onAcceptRequest={handleAcceptRequest}
-                onRejectRequest={handleRejectRequest}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {suggestedFriends.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">People You May Know</h2>
-          <div className="space-y-3">
-            {suggestedFriends.map(friend => (
-              <FriendCard
-                key={friend.id}
-                friend={friend}
-                onSendRequest={handleSendRequest}
-                onAcceptRequest={handleAcceptRequest}
-                onRejectRequest={handleRejectRequest}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {filteredFriends.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No results found for "{searchQuery}"</p>
-        </div>
+      ) : (
+        friends.map((friend) => (
+          <FriendCard
+            key={friend.id}
+            friend={friend}
+            onSendRequest={handleSendRequest}
+            onAcceptRequest={handleAcceptRequest}
+            onRejectRequest={handleRejectRequest}
+          />
+        ))
       )}
     </div>
   );

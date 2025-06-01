@@ -1,95 +1,94 @@
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Share, MoreHorizontal } from "lucide-react";
+import { useState, useEffect } from "react";
+import PostCard from "./PostCard";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { fetchUserPosts } from "@/utils/supabaseUtils";
 
-// Mock data for demonstration
-const mockPosts = [
-  {
-    id: 1,
-    user: {
-      name: "John Doe",
-      avatar: "",
-    },
-    content: "Just had an amazing day at the beach! The sunset was absolutely breathtaking. Sometimes it's the simple moments that create the most beautiful memories. 🌅",
-    timestamp: "2 hours ago",
-    likes: 15,
-    comments: 3,
-    shares: 1,
-  },
-  {
-    id: 2,
-    user: {
-      name: "Sarah Smith",
-      avatar: "",
-    },
-    content: "Celebrating my graduation today! Four years of hard work finally paid off. Grateful for all the support from family and friends. On to the next chapter! 🎓",
-    timestamp: "5 hours ago",
-    likes: 42,
-    comments: 12,
-    shares: 5,
-  },
-];
-
-const PostCard = ({ post }: { post: any }) => {
-  return (
-    <Card className="w-full">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Avatar>
-              <AvatarImage src={post.user.avatar} />
-              <AvatarFallback>{post.user.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-semibold">{post.user.name}</p>
-              <p className="text-sm text-muted-foreground">{post.timestamp}</p>
-            </div>
-          </div>
-          <Button variant="ghost" size="sm">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <p className="text-sm mb-4">{post.content}</p>
-        
-        <div className="flex items-center justify-between pt-4 border-t">
-          <div className="flex space-x-4">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-red-500">
-              <Heart className="h-4 w-4 mr-2" />
-              {post.likes}
-            </Button>
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-blue-500">
-              <MessageCircle className="h-4 w-4 mr-2" />
-              {post.comments}
-            </Button>
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-green-500">
-              <Share className="h-4 w-4 mr-2" />
-              {post.shares}
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+export interface Post {
+  id: string;
+  user_id: string;
+  content: string | null;
+  media_url: string | null;
+  media_type: string | null;
+  privacy: string;
+  likes_count: number | null;
+  comments_count: number | null;
+  created_at: string;
+  updated_at: string;
+}
 
 const PostFeed = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuthSession();
+
+  useEffect(() => {
+    const loadPosts = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const userPosts = await fetchUserPosts(user.id);
+        setPosts(userPosts);
+      } catch (error) {
+        console.error("Error loading posts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPosts();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="animate-pulse">
+            <div className="bg-secondary rounded-lg p-6 space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="h-10 w-10 bg-muted rounded-full"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted rounded w-24"></div>
+                  <div className="h-3 bg-muted rounded w-16"></div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 bg-muted rounded"></div>
+                <div className="h-4 bg-muted rounded w-3/4"></div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">Please sign in to view posts.</p>
+      </div>
+    );
+  }
+
+  if (posts.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">
+          No memories yet. Create your first post to get started!
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {mockPosts.map((post) => (
+      {posts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
-      
-      {mockPosts.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-12">
-            <p className="text-muted-foreground">No memories to show yet. Start sharing your first memory!</p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
