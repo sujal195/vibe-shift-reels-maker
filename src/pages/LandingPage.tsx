@@ -1,15 +1,9 @@
 
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const LandingPage = () => {
-  useEffect(() => {
-    console.log('LandingPage mounted');
-  }, []);
-
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-black overflow-hidden">
-      {/* Hero Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto space-y-8">
         <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
           Your Memories, Forever Alive.
@@ -29,7 +23,6 @@ const LandingPage = () => {
         </Link>
       </div>
 
-      {/* Background Glow Effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-violet-500/10" />
     </div>
   );

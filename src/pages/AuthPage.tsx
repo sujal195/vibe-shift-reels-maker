@@ -1,28 +1,46 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuthSession } from "@/hooks/useAuthSession";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/use-toast";
 
 const AuthPage = () => {
   const [isSignIn, setIsSignIn] = useState(true);
-  const { user, isLoading } = useAuthSession();
-  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    console.log('AuthPage mounted, user:', user, 'isLoading:', isLoading);
-    if (!isLoading && user) {
-      navigate("/");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (isSignIn) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        toast({ title: "Signed in successfully!" });
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        toast({ title: "Account created successfully!" });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  }, [user, isLoading, navigate]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <span className="text-xl text-white">Loading...</span>
-      </div>
-    );
-  }
+  };
 
   return (
     <div className="min-h-screen flex justify-center items-center bg-black">
@@ -30,32 +48,45 @@ const AuthPage = () => {
         <h1 className="text-3xl font-bold text-center mb-2 text-white">MEMORIA</h1>
         <p className="text-md text-gray-400 text-center mb-6">Your Life as a Living Timeline</p>
         
-        <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <h2 className="text-xl font-semibold text-center text-white">
             {isSignIn ? "Sign In" : "Create Account"}
           </h2>
           
-          <div className="space-y-4">
-            <input 
-              type="email" 
-              placeholder="Email" 
-              className="w-full p-3 rounded bg-zinc-800 text-white border border-zinc-700"
-            />
-            <input 
-              type="password" 
-              placeholder="Password" 
-              className="w-full p-3 rounded bg-zinc-800 text-white border border-zinc-700"
-            />
-            <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-              {isSignIn ? "Sign In" : "Sign Up"}
-            </Button>
-          </div>
+          <Input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={loading}
+            className="w-full p-3 rounded bg-zinc-800 text-white border border-zinc-700"
+          />
+          
+          <Input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={loading}
+            className="w-full p-3 rounded bg-zinc-800 text-white border border-zinc-700"
+          />
+          
+          <Button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            {loading ? "Loading..." : (isSignIn ? "Sign In" : "Sign Up")}
+          </Button>
           
           <div className="text-center mt-4">
             <p className="text-sm text-gray-400 mb-1">
               {isSignIn ? "Don't have an account?" : "Already have an account?"}
             </p>
             <Button 
+              type="button"
               variant="link" 
               onClick={() => setIsSignIn(!isSignIn)}
               className="p-0 h-auto text-purple-400"
@@ -63,7 +94,7 @@ const AuthPage = () => {
               {isSignIn ? "Sign up" : "Sign in"}
             </Button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
