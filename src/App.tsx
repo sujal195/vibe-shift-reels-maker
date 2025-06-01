@@ -16,32 +16,34 @@ const LoadingScreen = () => (
   </div>
 );
 
-const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
+const AppRoutes = () => {
   const { user, isLoading } = useAuthSession();
+  
+  console.log('AppRoutes - user:', user, 'isLoading:', isLoading);
   
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  return element;
-};
-
-const PublicRoute = ({ element }: { element: JSX.Element }) => {
-  const { user, isLoading } = useAuthSession();
-  
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
-  if (user) {
-    return <Navigate to="/home" replace />;
-  }
-
-  return element;
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route 
+          path="/" 
+          element={user ? <Navigate to="/home" replace /> : <LandingPage />} 
+        />
+        <Route 
+          path="/auth" 
+          element={user ? <Navigate to="/home" replace /> : <AuthPage />} 
+        />
+        <Route 
+          path="/home" 
+          element={user ? <div className="min-h-screen bg-black text-white p-8">Welcome to MEMORIA!</div> : <Navigate to="/auth" replace />} 
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 };
 
 const App = () => {
@@ -61,13 +63,7 @@ const App = () => {
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<PublicRoute element={<LandingPage />} />} />
-                <Route path="/auth" element={<PublicRoute element={<AuthPage />} />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </BrowserRouter>
+            <AppRoutes />
           </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>
