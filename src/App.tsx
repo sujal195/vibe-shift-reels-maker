@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
+import Index from "./pages/Index";
 import { AuthProvider, useAuthSession } from "@/hooks/useAuthSession";
 import { useState } from "react";
 
@@ -38,7 +39,7 @@ const AppRoutes = () => {
         />
         <Route 
           path="/home" 
-          element={user ? <div className="min-h-screen bg-black text-white p-8">Welcome to MEMORIA!</div> : <Navigate to="/auth" replace />} 
+          element={user ? <Index /> : <Navigate to="/auth" replace />} 
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
