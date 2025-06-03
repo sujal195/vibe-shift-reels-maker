@@ -52,14 +52,14 @@
   }
 
   body {
-    @apply bg-black text-foreground;
+    @apply bg-black text-foreground font-sans;
   }
 
   html {
     @apply scroll-smooth;
   }
 
-  /* Special styles for our app */
+  /* Custom styles for MEMORIA */
   .glass-card {
     @apply bg-zinc-900/70 backdrop-blur-md border border-zinc-800;
   }
@@ -69,12 +69,13 @@
   }
 }
 
+/* Custom animations */
 @keyframes float {
   0%, 100% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-5px);
+    transform: translateY(-10px);
   }
 }
 
@@ -83,7 +84,18 @@
     opacity: 0.1;
   }
   50% {
-    opacity: 0.2;
+    opacity: 0.3;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -95,17 +107,11 @@
   animation: pulse-slow 4s ease-in-out infinite;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .animate-fade-in {
   animation: fadeInUp 0.8s ease-out forwards;
+}
+
+/* Font families */
+.font-display {
+  font-family: 'Space Grotesk', 'Poppins', sans-serif;
 }

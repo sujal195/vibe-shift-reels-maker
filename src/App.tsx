@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,27 +7,24 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
-import Index from "./pages/Index";
-import FriendsPage from "./pages/FriendsPage";
+import Dashboard from "./pages/Dashboard";
+import AddMemoryPage from "./pages/AddMemoryPage";
+import TimelinePage from "./pages/TimelinePage";
 import ProfilePage from "./pages/ProfilePage";
-import NotificationsPage from "./pages/NotificationsPage";
-import ReelsPage from "./pages/ReelsPage";
-import SettingsPage from "./pages/SettingsPage";
-import MessagesPage from "./pages/MessagesPage";
 import { AuthProvider, useAuthSession } from "@/hooks/useAuthSession";
 import { useState } from "react";
-import PremiumPage from "./pages/PremiumPage";
 
 const LoadingScreen = () => (
   <div className="min-h-screen flex items-center justify-center bg-black">
-    <span className="text-xl text-white">Loading...</span>
+    <div className="animate-pulse">
+      <div className="text-2xl font-bold text-white mb-2">MEMORIA</div>
+      <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-pink-500 rounded-full"></div>
+    </div>
   </div>
 );
 
 const AppRoutes = () => {
   const { user, isLoading } = useAuthSession();
-  
-  console.log('AppRoutes - user:', user, 'isLoading:', isLoading);
   
   if (isLoading) {
     return <LoadingScreen />;
@@ -37,43 +35,27 @@ const AppRoutes = () => {
       <Routes>
         <Route 
           path="/" 
-          element={user ? <Navigate to="/home" replace /> : <LandingPage />} 
+          element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} 
         />
         <Route 
           path="/auth" 
-          element={user ? <Navigate to="/home" replace /> : <AuthPage />} 
+          element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} 
         />
         <Route 
-          path="/home" 
-          element={user ? <Index /> : <Navigate to="/auth" replace />} 
+          path="/dashboard" 
+          element={user ? <Dashboard /> : <Navigate to="/auth" replace />} 
         />
         <Route 
-          path="/friends" 
-          element={user ? <FriendsPage /> : <Navigate to="/auth" replace />} 
+          path="/add-memory" 
+          element={user ? <AddMemoryPage /> : <Navigate to="/auth" replace />} 
+        />
+        <Route 
+          path="/timeline" 
+          element={user ? <TimelinePage /> : <Navigate to="/auth" replace />} 
         />
         <Route 
           path="/profile" 
           element={user ? <ProfilePage /> : <Navigate to="/auth" replace />} 
-        />
-        <Route 
-          path="/notifications" 
-          element={user ? <NotificationsPage /> : <Navigate to="/auth" replace />} 
-        />
-        <Route 
-          path="/reels" 
-          element={user ? <ReelsPage /> : <Navigate to="/auth" replace />} 
-        />
-        <Route 
-          path="/settings" 
-          element={user ? <SettingsPage /> : <Navigate to="/auth" replace />} 
-        />
-        <Route 
-          path="/messages" 
-          element={user ? <MessagesPage /> : <Navigate to="/auth" replace />} 
-        />
-        <Route 
-          path="/premium" 
-          element={user ? <PremiumPage /> : <Navigate to="/auth" replace />} 
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
