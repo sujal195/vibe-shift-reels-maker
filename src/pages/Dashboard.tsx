@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Timeline, User, Bell, LogOut, Heart, Camera, Music, MapPin } from "lucide-react";
+import { Plus, Clock, User, Bell, LogOut, Heart, Camera, Music } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import MemoryCard from "@/components/MemoryCard";
@@ -12,11 +12,11 @@ import MemoryCard from "@/components/MemoryCard";
 interface Memory {
   id: string;
   title: string;
-  content: string;
+  description: string;
   emotion: string;
   created_at: string;
-  media_url?: string;
-  media_type?: string;
+  image_url?: string;
+  user_id: string;
 }
 
 const Dashboard = () => {
@@ -61,20 +61,6 @@ const Dashboard = () => {
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'User';
 
-  const getEmotionIcon = (emotion: string) => {
-    const emotions: Record<string, string> = {
-      happy: '😊',
-      sad: '😢',
-      excited: '🤩',
-      calm: '😌',
-      angry: '😠',
-      love: '❤️',
-      grateful: '🙏',
-      anxious: '😰'
-    };
-    return emotions[emotion] || '😊';
-  };
-
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Top Navigation */}
@@ -93,7 +79,7 @@ const Dashboard = () => {
               onClick={() => navigate('/timeline')}
               className="text-gray-300 hover:text-white"
             >
-              <Timeline className="w-4 h-4 mr-2" />
+              <Clock className="w-4 h-4 mr-2" />
               Timeline
             </Button>
             
@@ -174,7 +160,7 @@ const Dashboard = () => {
             className="glass-card p-6 rounded-2xl text-center hover-scale group"
           >
             <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-              <Timeline className="w-6 h-6 text-white" />
+              <Clock className="w-6 h-6 text-white" />
             </div>
             <p className="text-sm font-medium text-white">Timeline</p>
           </Link>

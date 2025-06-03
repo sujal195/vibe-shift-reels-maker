@@ -6,11 +6,11 @@ import { useState } from "react";
 interface Memory {
   id: string;
   title: string;
-  content: string;
+  description: string;
   emotion: string;
   created_at: string;
-  media_url?: string;
-  media_type?: string;
+  image_url?: string;
+  user_id: string;
 }
 
 interface MemoryCardProps {
@@ -73,40 +73,19 @@ const MemoryCard = ({ memory }: MemoryCardProps) => {
 
       {/* Content */}
       <div className="mb-4">
-        <p className="text-gray-300 leading-relaxed">{memory.content}</p>
+        <p className="text-gray-300 leading-relaxed">{memory.description}</p>
       </div>
 
       {/* Media */}
-      {memory.media_url && (
+      {memory.image_url && (
         <div className="mb-4">
-          {memory.media_type === 'image' ? (
-            <div className="rounded-xl overflow-hidden">
-              <img
-                src={memory.media_url}
-                alt="Memory"
-                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-          ) : memory.media_type === 'audio' ? (
-            <div className="bg-gray-800/50 rounded-xl p-4 flex items-center space-x-4">
-              <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="w-10 h-10 bg-gradient-to-r from-blue-500 to-pink-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform"
-              >
-                {isPlaying ? (
-                  <Pause className="w-4 h-4 text-white" />
-                ) : (
-                  <Play className="w-4 h-4 text-white ml-0.5" />
-                )}
-              </button>
-              <div className="flex-1">
-                <div className="w-full bg-gray-700 rounded-full h-2">
-                  <div className="bg-gradient-to-r from-blue-500 to-pink-500 h-2 rounded-full w-0"></div>
-                </div>
-              </div>
-              <span className="text-sm text-gray-400">0:00</span>
-            </div>
-          ) : null}
+          <div className="rounded-xl overflow-hidden">
+            <img
+              src={memory.image_url}
+              alt="Memory"
+              className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </div>
         </div>
       )}
 
